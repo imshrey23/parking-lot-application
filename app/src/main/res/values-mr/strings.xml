@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">स्पॉट  फाइंडर </string>
+    <string name="search_bar_placeholder">स्थान प्रविष्ट करा</string>
+    <string name="google_maps_api_key">AIzaSyDu-QiPUjWvgz9k4WH56Qj0w03Qs2eud9I</string>
+    <string name="pay_at_pay_station">पे स्टेशनवर पैसे द्या</string>
+    <string name="per_hr">प्रति तास</string>
+    <string name="parking_charges_title" >पार्किंग शुल्क:</string>
+    <string name="parking_limit_title">पार्किंग वेळ मर्यादा:</string>
+    <string name="parking_time_limit">%d तास पार्किंग</string>
+    <string name="image_caption">पार्किंगची प्रतिमा</string>
+    <string name="spots">जागा</string>
+    <string name="spot">जागा</string>
+
+
+
+</resources>

@@ -1,0 +1,11 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <solid android:color="#D5E2F3" /> <!-- Set the background color of the bottom sheet here, e.g. white -->
+
+    <corners
+        android:topLeftRadius="16dp"
+    android:topRightRadius="16dp"
+    android:bottomLeftRadius="0dp"
+    android:bottomRightRadius="0dp" />
+
+</shape>
