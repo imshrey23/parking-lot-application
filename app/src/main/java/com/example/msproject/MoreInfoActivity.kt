@@ -69,8 +69,4 @@ class MoreInfoActivity : AppCompatActivity() {
     }
 
 
-
-
-
-
 }

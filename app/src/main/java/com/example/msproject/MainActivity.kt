@@ -2,10 +2,8 @@ package com.example.msproject
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.LocationManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -14,12 +12,10 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.msproject.processor.Location
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -32,31 +28,25 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
-import com.google.gson.Gson
-import com.google.gson.internal.bind.TypeAdapters.URL
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.search_bar
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.json.JSONObject
 import java.io.IOException
 import java.lang.Exception
-import java.net.URL
+
 import java.util.*
-import com.google.cloud.translate.Translate
-import com.google.cloud.translate.TranslateOptions
-import com.google.cloud.translate.Translation
-import android.provider.Settings
 
 
 
 class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallback {
+    private val view = Location(this)
     private var isSearchActivityLaunched = true // Flag to indicate whether search activity is already launched
     private lateinit var fusedLocationClient: FusedLocationProviderClient //location permission
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
-    private lateinit var googleMap: GoogleMap
+    lateinit var googleMap: GoogleMap
     private var parkingTimeLimit: String? = null
     private var parkingCharges: String? = null
     private var parkingImageUrl: String? = null
@@ -78,7 +68,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
 
                 callParkingLotsApi { apiResponse ->
                     if (apiResponse != null) {
-                        findNearestParkingLot(apiResponse, currentLocation)
+                        view.findNearestParkingLot(apiResponse, currentLocation)
                     } else {
                         // Handle error calling API
                         println("Error calling API.")
@@ -90,7 +80,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
                 lastSearchedLocationLng = null
                 getCurrentLocationAndSendToAPI()
             }
-            apiHandler.postDelayed(this, 300)
+            apiHandler.postDelayed(this, 3000)
         }
     }
 
@@ -264,7 +254,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
             isSearchActivityLaunched = true // Re-enable search bar clickability after autocomplete intent is closed
             val place: Place = Autocomplete.getPlaceFromIntent(data!!)
-            val latLng = place.latLng
             lastSearchedLocationLat = place.latLng?.latitude
             lastSearchedLocationLng = place.latLng?.longitude
             val currentLocation = Pair(
@@ -273,7 +262,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
             )
             callParkingLotsApi { apiResponse ->
                 if (apiResponse != null) {
-                    findNearestParkingLot(apiResponse, currentLocation)
+                    view.findNearestParkingLot(apiResponse, currentLocation)
                 } else {
                     // Handle error calling API
                     println("Error calling API.")
@@ -330,7 +319,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
                         val currentLocation = Pair(it.latitude, it.longitude)
                         callParkingLotsApi { apiResponse ->
                             if (apiResponse != null) {
-                                findNearestParkingLot(apiResponse, currentLocation)
+                                view.findNearestParkingLot(apiResponse, currentLocation)
                             } else {
                                 // Handle error calling API
                                 println("Error calling API.")
@@ -344,58 +333,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
                 }
         }
 
-        // Check if location services are enabled
-// Check if location services are enabled
-//        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-//        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-//            // Show popup to turn on location services
-//            val builder = AlertDialog.Builder(this)
-//            builder.setTitle("Location Services Disabled")
-//            builder.setMessage("To find parking lots near your current location, turn on location services.")
-//            builder.setPositiveButton("Settings") { _, _ ->
-//                // Open settings to turn on location services
-//                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-//                startActivity(intent)
-//            }
-//            builder.setNegativeButton("Cancel", null)
-//            val dialog = builder.create()
-//            dialog.show()
-//        }
 
-    }
-
-
-
-
-
-
-
-
-
-    fun translate(text: String, targetLanguage: String): String {
-        // Set up the translation service
-        val translate = TranslateOptions.newBuilder()
-            .setApiKey("AIzaSyDu-QiPUjWvgz9k4WH56Qj0w03Qs2eud9I")
-            .build()
-            .service
-
-        // Perform the translation
-        val translation: Translation = translate.translate(
-            text,
-            Translate.TranslateOption.targetLanguage(targetLanguage)
-        )
-
-        // Return the translated text
-        return translation.translatedText
-    }
-
-    private fun updateParkingLocationOnMap(googleMap: GoogleMap ,latitude: Double, longitude: Double) {
-        val latLng = LatLng(latitude, longitude)
-        runOnUiThread {
-            googleMap.clear()
-            googleMap.addMarker(MarkerOptions().position(latLng))
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
-        }
     }
 
 
@@ -446,141 +384,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
         })
     }
 
-
-    fun findNearestParkingLot(apiResponse: String, currentLocation: Pair<Double, Double>) {
-        val gson = Gson()
-        val parkingLotsResponse = gson.fromJson(apiResponse, ParkingLotsResponse::class.java)
-
-        // First, filter out parking lots with less than 5 spots available
-        val availableParkingLots = parkingLotsResponse.parkingLots.filter { it.number_of_empty_parking_slots > 5 }
-
-        var minDistance = Double.MAX_VALUE
-        var nearestParkingLot: ParkingLot? = null
-
-        if (availableParkingLots.isNotEmpty()) {
-            // If there are available parking lots, find the nearest one
-            for (parkingLot in availableParkingLots) {
-                val distanceMatrixApiResponse = callDistanceMatrixApi(currentLocation, Pair(parkingLot.latitude.toDouble(), parkingLot.longitude.toDouble()))
-                val duration = getDrivingDurationFromDistanceMatrixApiResponse(distanceMatrixApiResponse)
-
-                if (duration != null && duration < minDistance) {
-                    minDistance = duration
-                    nearestParkingLot = parkingLot
-                }
-            }
-        } else {
-            // If there are no available parking lots, find the nearest one with less than 5 spots available
-            for (parkingLot in parkingLotsResponse.parkingLots) {
-                val distanceMatrixApiResponse = callDistanceMatrixApi(currentLocation, Pair(parkingLot.latitude.toDouble(), parkingLot.longitude.toDouble()))
-                val duration = getDrivingDurationFromDistanceMatrixApiResponse(distanceMatrixApiResponse)
-
-                if (duration != null && duration < minDistance && parkingLot.number_of_empty_parking_slots > 0) {
-                    minDistance = duration
-                    nearestParkingLot = parkingLot
-                }
-            }
-        }
-
-        if (nearestParkingLot != null) {
-            val nearestParkingLotJson = gson.toJson(nearestParkingLot)
-            val nearestParkingLot = Gson().fromJson(
-                nearestParkingLotJson,
-                ParkingLot::class.java
-            )
-            parkingLatitude = (nearestParkingLot.latitude).toDouble()
-            parkingLongitude = (nearestParkingLot.longitude).toDouble()
-            // Print information about the nearest parking lot
-            updateParkingLocationOnMap(googleMap, (nearestParkingLot.latitude).toDouble(), nearestParkingLot.longitude.toDouble())
-            val locationName = (nearestParkingLot.parking_lot_name)
-            val spotsAvailable = (nearestParkingLot.number_of_empty_parking_slots)
-
-            val locale = Locale.getDefault()
-            val translatedLocationName = when (locale.language) {
-                "mr" -> translate(locationName , "Mr") // Replace with your translation function
-                "es" -> translate(locationName , "Es") // Replace with your translation function
-                else -> locationName // Default to original name if no translation available
-            }
-
-             // Translate "spot" or "spots" based on device language
-            val spotsStringResourceId = if (spotsAvailable == 1) {
-                R.string.spot
-            } else {
-                R.string.spots
-            }
-
-            val spotsString = getString(spotsStringResourceId)
-            val formattedSpotsAvailable = String.format(
-                Locale.getDefault(),
-                "%d",
-                spotsAvailable
-            )
-            val rightText = "$formattedSpotsAvailable $spotsString"
-
-
-            // Update the bottom sheet view
-            val bottomSheetLayout = findViewById<LinearLayout>(R.id.bottomSheetLayout)
-            val leftTextView = bottomSheetLayout.findViewById<TextView>(R.id.leftTextView)
-            val rightTextView = bottomSheetLayout.findViewById<TextView>(R.id.rightTextView)
-
-            parkingTimeLimit = nearestParkingLot.parking_lot_time_limit
-            parkingCharges = nearestParkingLot.parking_charges
-            parkingImageUrl = nearestParkingLot.image_url
-
-            runOnUiThread {
-                leftTextView.text = translatedLocationName
-                rightTextView.text = rightText
-
-            }
-
-
-        } else {
-            // No parking lot found
-            println("No parking lots found.")
-        }
-    }
-
-
-
-    // Models
-    data class ParkingLotsResponse(val parkingLots: List<ParkingLot>)
-    data class ParkingLot(
-        val latitude: String,
-        val longitude: String,
-        val parking_lot_name: String,
-        val number_of_empty_parking_slots: Int,
-        val total_number_of_parking_lots: Int,
-        val timestamp: String,
-        val image_url: String,
-        val parking_lot_time_limit: String,
-        val parking_charges: String
-    )
-
-    // Functions
-    fun callDistanceMatrixApi(origin: Pair<Double, Double>, destination: Pair<Double, Double>): String {
-        val url = "https://maps.googleapis.com/maps/api/distancematrix/json?" +
-                "origins=${origin.first},${origin.second}&" +
-                "destinations=${destination.first},${destination.second}&" +
-                "mode=driving&" +
-                "key=AIzaSyDu-QiPUjWvgz9k4WH56Qj0w03Qs2eud9I"
-        return URL(url).readText()
-    }
-
-    fun getDrivingDurationFromDistanceMatrixApiResponse(response: String): Double? {
-        val gson = Gson()
-        val distanceMatrixResponse = gson.fromJson(response, DistanceMatrixResponse::class.java)
-        return if (distanceMatrixResponse.rows.isNotEmpty() &&
-            distanceMatrixResponse.rows[0].elements.isNotEmpty() &&
-            distanceMatrixResponse.rows[0].elements[0].duration != null) {
-            distanceMatrixResponse.rows[0].elements[0].duration?.value?.toDouble()
-        } else {
-            null
-        }
-    }
-
-    data class DistanceMatrixResponse(val rows: List<Row>)
-    data class Row(val elements: List<Element>)
-    data class Element(val duration: Duration?)
-    data class Duration(val value: Long, val text: String)
 
     companion object{
         private const val PLACE_AUTOCOMPLETE_REQUEST_CODE = 3
