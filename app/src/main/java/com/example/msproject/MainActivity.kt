@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.msproject.processor.Location
+import com.example.msproject.processor.http.HttpRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -30,11 +31,7 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.search_bar
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import java.io.IOException
+
 import java.lang.Exception
 
 import java.util.*
@@ -42,19 +39,20 @@ import java.util.*
 
 
 class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallback {
+
     private val view = Location(this)
+    private val http = HttpRequest()
     private var isSearchActivityLaunched = true // Flag to indicate whether search activity is already launched
     private lateinit var fusedLocationClient: FusedLocationProviderClient //location permission
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
     lateinit var googleMap: GoogleMap
-    private var parkingTimeLimit: String? = null
-    private var parkingCharges: String? = null
-    private var parkingImageUrl: String? = null
     private var isSearchBarEmpty = true // Flag to indicate whether the search bar is empty or not
 
     private val apiHandler = Handler()
     private var lastSearchedLocationLat: Double? = null
     private var lastSearchedLocationLng: Double? = null
+    var parkingLatitude: Double = 0.0
+    var parkingLongitude: Double = 0.0
 
 
     private val apiRunnable = object : Runnable {
@@ -66,7 +64,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
                     lastSearchedLocationLng ?: 0.0
                 )
 
-                callParkingLotsApi { apiResponse ->
+                http.callParkingLotsApi { apiResponse ->
                     if (apiResponse != null) {
                         view.findNearestParkingLot(apiResponse, currentLocation)
                     } else {
@@ -126,9 +124,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
         fabMoreInfo.setOnClickListener{
             fabMoreInfo.bringToFront()
             val intent = Intent(this, MoreInfoActivity::class.java)
-            intent.putExtra("parking_time_limit", parkingTimeLimit)
-            intent.putExtra("parking_charges", parkingCharges)
-            intent.putExtra("parkingImageUrl" , parkingImageUrl)
+            intent.putExtra("parking_charges", view.parkingCharges)
+            intent.putExtra("parkingImageUrl" , view.parkingImageUrl)
             startActivity(intent)
         }
 
@@ -218,7 +215,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
         apiHandler.removeCallbacks(apiRunnable)
     }
 
-
     override fun onClick(v: View?) {
         when(v!!.id){
             R.id.search_bar -> {
@@ -247,7 +243,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
     }
 
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK){
@@ -260,7 +255,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
                 lastSearchedLocationLat ?: 0.0,
                 lastSearchedLocationLng ?: 0.0
             )
-            callParkingLotsApi { apiResponse ->
+            http.callParkingLotsApi { apiResponse ->
                 if (apiResponse != null) {
                     view.findNearestParkingLot(apiResponse, currentLocation)
                 } else {
@@ -292,10 +287,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
     }
 
 
-
-    private var parkingLatitude: Double = 0.0
-    private var parkingLongitude: Double = 0.0
-
     fun getCurrentLocationAndSendToAPI() {
         // Get current location using fused location client
         if (ActivityCompat.checkSelfPermission(
@@ -317,7 +308,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
                     // Location retrieved successfully, send to API
                     location?.let {
                         val currentLocation = Pair(it.latitude, it.longitude)
-                        callParkingLotsApi { apiResponse ->
+                        http.callParkingLotsApi { apiResponse ->
                             if (apiResponse != null) {
                                 view.findNearestParkingLot(apiResponse, currentLocation)
                             } else {
@@ -335,7 +326,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
 
 
     }
-
 
     // This method is called when the user responds to the permission request.
     override fun onRequestPermissionsResult(
@@ -361,32 +351,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnMapReadyCallb
         }
     }
 
-
-    private fun callParkingLotsApi(callback: (String?) -> Unit) {
-        val url = "https://658ytxfrod.execute-api.us-east-1.amazonaws.com/dev/parking_lots"
-        val client = OkHttpClient()
-
-        val request = Request.Builder()
-            .url(url)
-            .get()
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Log.e("API Error", e.message ?: "Unknown Error")
-                callback(null)
-            }
-
-            override fun onResponse(call: okhttp3.Call, response: Response) {
-                val responseString = response.body?.string()
-                callback(responseString)
-            }
-        })
-    }
-
-
     companion object{
         private const val PLACE_AUTOCOMPLETE_REQUEST_CODE = 3
-        private const val PERMISSIONS_REQUEST_LOCATION = 100
+        const val PERMISSIONS_REQUEST_LOCATION = 100
     }
 }

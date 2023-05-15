@@ -1,9 +1,7 @@
 package com.example.msproject.processor
 
-
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.content.*
 import com.example.msproject.MainActivity
 import com.example.msproject.R
 import com.example.msproject.model.ParkingLot
@@ -20,16 +18,13 @@ import com.google.gson.Gson
 import java.net.URL
 
 
-
-import kotlinx.android.synthetic.main.activity_main.*
-
 import java.util.*
 
 class Location(private val activity: MainActivity) {
 
-    private var parkingLatitude: Double = 0.0
-    private var parkingLongitude: Double = 0.0
 
+    var parkingCharges: String? = null
+    var parkingImageUrl: String? = null
 
     fun findNearestParkingLot(apiResponse: String, currentLocation: Pair<Double, Double>) {
         val gson = Gson()
@@ -71,8 +66,8 @@ class Location(private val activity: MainActivity) {
                 nearestParkingLotJson,
                 ParkingLot::class.java
             )
-            parkingLatitude = (nearestParkingLot.latitude).toDouble()
-            parkingLongitude = (nearestParkingLot.longitude).toDouble()
+            activity.parkingLatitude = (nearestParkingLot.latitude).toDouble()
+            activity.parkingLongitude = (nearestParkingLot.longitude).toDouble()
             // Print information about the nearest parking lot
             updateParkingLocationOnMap(activity.googleMap, (nearestParkingLot.latitude).toDouble(), nearestParkingLot.longitude.toDouble())
             val locationName = (nearestParkingLot.parking_lot_name)
@@ -100,7 +95,8 @@ class Location(private val activity: MainActivity) {
             )
             val rightText = "$formattedSpotsAvailable $spotsString"
 
-
+            parkingCharges = nearestParkingLot.parking_charges
+            parkingImageUrl = nearestParkingLot.image_url
             // Update the bottom sheet view
             val bottomSheetLayout = activity.findViewById<LinearLayout>(R.id.bottomSheetLayout)
             val leftTextView = bottomSheetLayout.findViewById<TextView>(R.id.leftTextView)
@@ -120,7 +116,7 @@ class Location(private val activity: MainActivity) {
     }
 
     //used only by findNearestParkingLot
-    fun callDistanceMatrixApi(origin: Pair<Double, Double>, destination: Pair<Double, Double>): String {
+    private fun callDistanceMatrixApi(origin: Pair<Double, Double>, destination: Pair<Double, Double>): String {
         val url = "https://maps.googleapis.com/maps/api/distancematrix/json?" +
                 "origins=${origin.first},${origin.second}&" +
                 "destinations=${destination.first},${destination.second}&" +
@@ -130,7 +126,7 @@ class Location(private val activity: MainActivity) {
     }
 
     //used by findNearestParkingLot
-    fun getDrivingDurationFromDistanceMatrixApiResponse(response: String): Double? {
+    private fun getDrivingDurationFromDistanceMatrixApiResponse(response: String): Double? {
         val gson = Gson()
         val distanceMatrixResponse = gson.fromJson(response, DistanceMatrixResponse::class.java)
         return if (distanceMatrixResponse.rows.isNotEmpty() &&
@@ -142,7 +138,7 @@ class Location(private val activity: MainActivity) {
         }
     }
 
-    fun translate(text: String, targetLanguage: String): String {
+    private fun translate(text: String, targetLanguage: String): String {
         // Set up the translation service
         val translate = TranslateOptions.newBuilder()
             .setApiKey("AIzaSyDu-QiPUjWvgz9k4WH56Qj0w03Qs2eud9I")
@@ -167,5 +163,6 @@ class Location(private val activity: MainActivity) {
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
         }
     }
+
 
 }

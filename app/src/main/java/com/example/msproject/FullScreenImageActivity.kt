@@ -1,7 +1,6 @@
 package com.example.msproject
 
 import android.os.Bundle
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.bumptech.glide.Glide
@@ -15,7 +14,6 @@ class FullScreenImageActivity : AppCompatActivity() {
 
         // Set up the toolbar with back button
         val toolbar: Toolbar = findViewById(R.id.full_image)
-//        val captionTextView = findViewById<TextView>(R.string.image_caption)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
@@ -31,10 +29,6 @@ class FullScreenImageActivity : AppCompatActivity() {
                 .into(photoView)
         }
 
-//        val imageCaption = intent.getStringExtra("image_caption")
-//        if (imageCaption != null) {
-//            captionTextView.text = imageCaption
-//        }
     }
 
     // Handle the back button click

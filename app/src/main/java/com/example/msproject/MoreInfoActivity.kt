@@ -1,23 +1,16 @@
 package com.example.msproject
 
 import android.annotation.SuppressLint
-import android.app.Activity
+
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.widget.Autocomplete
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import kotlinx.android.synthetic.main.activity_more_info.*
-import java.lang.Exception
 import com.bumptech.glide.Glide
 import com.ortiz.touchview.TouchImageView
-import com.squareup.picasso.Picasso
+
 
 class MoreInfoActivity : AppCompatActivity() {
 
