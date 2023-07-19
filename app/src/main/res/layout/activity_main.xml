@@ -1,14 +1,35 @@
-<?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.circularreveal.CircularRevealFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:id="@+id/main">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    //more information floating button
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.msproject.view_model.MainViewModel" />
+    </data>
+
+    <com.google.android.material.circularreveal.CircularRevealFrameLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity"
+        android:id="@+id/main">
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabCurrentLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="16dp"
+            app:tint="#4a80f5"
+            app:srcCompat="@drawable/ic_baseline_my_location_24" />
+
+
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabMoreInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,7 +43,6 @@
         app:srcCompat="@drawable/ic_action_add_24dp"
         />
 
-    //navigation floating button
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabNavigation"
         android:layout_width="wrap_content"
@@ -37,14 +57,12 @@
         app:backgroundTint="#1A73E9"
         app:srcCompat="@drawable/ic_baseline_directions_24" />
 
-
     <fragment
         android:id="@+id/map_fragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-    // Search bar at top
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/til_location"
         android:theme="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -73,12 +91,9 @@
             android:textColorHint="@color/secondary_text_color"
             android:textSize="@dimen/search_bar_text_size"
             tools:visibility="visible" />
-
-
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -88,8 +103,9 @@
             android:layout_height="100dp"
             android:background="@drawable/rounded_corner_background"
             android:orientation="vertical"
-            app:elevation = "8dp"
+            app:elevation="8dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -99,17 +115,14 @@
                 android:layout_marginRight="20dp"
                 android:gravity="center">
 
-                <!-- Text view for left-aligned text -->
                 <TextView
                     android:id="@+id/leftTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tebeau hall"
                     android:textColor="#000000"
-                    android:textSize="23sp"
-                    />
+                    android:textSize="23sp" />
 
-                <!-- Text view for right-aligned text -->
                 <TextView
                     android:id="@+id/rightTextView"
                     android:layout_width="wrap_content"
@@ -117,12 +130,11 @@
                     android:text="@string/spots"
                     android:textColor="#000000"
                     android:textSize="23sp"
-                    android:layout_alignParentRight="true"
-                    />
-
+                    android:layout_alignParentRight="true" />
             </RelativeLayout>
-
         </LinearLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </com.google.android.material.circularreveal.CircularRevealFrameLayout>
+
+</layout>

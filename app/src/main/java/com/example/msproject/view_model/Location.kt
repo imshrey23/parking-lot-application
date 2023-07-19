@@ -1,7 +1,9 @@
-package com.example.msproject.processor
+package com.example.msproject.view_model
 
+import android.os.Build
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import com.example.msproject.MainActivity
 import com.example.msproject.R
 import com.example.msproject.model.ParkingLot
@@ -16,22 +18,29 @@ import com.google.cloud.translate.TranslateOptions
 import com.google.cloud.translate.Translation
 import com.google.gson.Gson
 import java.net.URL
+import android.provider.Settings
+
 
 
 import java.util.*
 
 class Location(private val activity: MainActivity) {
 
-
     var parkingCharges: String? = null
     var parkingImageUrl: String? = null
+    var timestamp: String? = null
 
-    fun findNearestParkingLot(apiResponse: String, currentLocation: Pair<Double, Double>) {
+    private val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun findNearestParkingLot(apiResponse: String, currentLocation: Pair<Double, Double>, googleMap: GoogleMap) {
         val gson = Gson()
         val parkingLotsResponse = gson.fromJson(apiResponse, ParkingLotsResponse::class.java)
+        // Get the total number of empty parking spots available
+        val emptyParkingSpots = parkingLotsResponse.parkingLots.sumBy { it.number_of_empty_parking_slots }
 
         // First, filter out parking lots with less than 5 spots available
-        val availableParkingLots = parkingLotsResponse.parkingLots.filter { it.number_of_empty_parking_slots > 5 }
+        val availableParkingLots = parkingLotsResponse.parkingLots.filter { it.number_of_empty_parking_slots > 1 }
 
         var minDistance = Double.MAX_VALUE
         var nearestParkingLot: ParkingLot? = null
@@ -66,10 +75,8 @@ class Location(private val activity: MainActivity) {
                 nearestParkingLotJson,
                 ParkingLot::class.java
             )
-            activity.parkingLatitude = (nearestParkingLot.latitude).toDouble()
-            activity.parkingLongitude = (nearestParkingLot.longitude).toDouble()
             // Print information about the nearest parking lot
-            updateParkingLocationOnMap(activity.googleMap, (nearestParkingLot.latitude).toDouble(), nearestParkingLot.longitude.toDouble())
+            updateParkingLocationOnMap(googleMap, (nearestParkingLot.latitude).toDouble(), nearestParkingLot.longitude.toDouble())
             val locationName = (nearestParkingLot.parking_lot_name)
             val spotsAvailable = (nearestParkingLot.number_of_empty_parking_slots)
 
@@ -97,6 +104,7 @@ class Location(private val activity: MainActivity) {
 
             parkingCharges = nearestParkingLot.parking_charges
             parkingImageUrl = nearestParkingLot.image_url
+            timestamp = nearestParkingLot.timestamp
             // Update the bottom sheet view
             val bottomSheetLayout = activity.findViewById<LinearLayout>(R.id.bottomSheetLayout)
             val leftTextView = bottomSheetLayout.findViewById<TextView>(R.id.leftTextView)
@@ -105,27 +113,24 @@ class Location(private val activity: MainActivity) {
             activity.runOnUiThread {
                 leftTextView.text = translatedLocationName
                 rightTextView.text = rightText
-
             }
-
-
         } else {
             // No parking lot found
             println("No parking lots found.")
         }
     }
 
-    //used only by findNearestParkingLot
+    // Used only by findNearestParkingLot
     private fun callDistanceMatrixApi(origin: Pair<Double, Double>, destination: Pair<Double, Double>): String {
         val url = "https://maps.googleapis.com/maps/api/distancematrix/json?" +
                 "origins=${origin.first},${origin.second}&" +
                 "destinations=${destination.first},${destination.second}&" +
                 "mode=driving&" +
-                "key=AIzaSyDu-QiPUjWvgz9k4WH56Qj0w03Qs2eud9I"
+                "key=AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y"
         return URL(url).readText()
     }
 
-    //used by findNearestParkingLot
+    // Used by findNearestParkingLot
     private fun getDrivingDurationFromDistanceMatrixApiResponse(response: String): Double? {
         val gson = Gson()
         val distanceMatrixResponse = gson.fromJson(response, DistanceMatrixResponse::class.java)
@@ -138,10 +143,17 @@ class Location(private val activity: MainActivity) {
         }
     }
 
+    // Get the count of people watching a specific parking lot
+//    @RequiresApi(Build.VERSION_CODES.N)
+//    fun getParkingLotUsersCount(parkingLotId: String): Int {
+//        val count = parkingLotUsersCount[parkingLotId]
+//        return count ?: 0
+//    }
+
     private fun translate(text: String, targetLanguage: String): String {
         // Set up the translation service
         val translate = TranslateOptions.newBuilder()
-            .setApiKey("AIzaSyDu-QiPUjWvgz9k4WH56Qj0w03Qs2eud9I")
+            .setApiKey("AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y")
             .build()
             .service
 
@@ -160,9 +172,14 @@ class Location(private val activity: MainActivity) {
         activity.runOnUiThread {
             googleMap.clear()
             googleMap.addMarker(MarkerOptions().position(latLng))
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,18f))
         }
     }
 
-
+    // Function to retrieve a unique identifier for the device
+    private fun getDeviceId(): String {
+        return Settings.Secure.getString(activity.contentResolver, Settings.Secure.ANDROID_ID)
+    }
 }
+
+

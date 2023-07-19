@@ -1,4 +1,4 @@
-package com.example.msproject.processor.http
+package com.example.msproject.view_model.http
 
 import android.util.Log
 import okhttp3.Callback

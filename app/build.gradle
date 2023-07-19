@@ -7,9 +7,13 @@ plugins {
 android {
     compileSdk 32
 
+    dataBinding {
+        enabled = true
+    }
+
     defaultConfig {
         applicationId "com.example.pla2"
-        minSdk 21
+        minSdk 24
         targetSdk 32
         versionCode 1
         versionName "1.0"
@@ -54,6 +58,8 @@ dependencies {
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'com.google.cloud:google-cloud-translate:2.2.0'
     implementation 'com.google.auth:google-auth-library-credentials:1.2.0'
+    implementation 'androidx.databinding:databinding-runtime:4.2.0'
+
 
 
 

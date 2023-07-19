@@ -7,7 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
-import kotlinx.android.synthetic.main.activity_more_info.*
+import androidx.appcompat.widget.Toolbar
+
+//import kotlinx.android.synthetic.main.activity_more_info.*
+
 import com.bumptech.glide.Glide
 import com.ortiz.touchview.TouchImageView
 
@@ -22,22 +25,29 @@ class MoreInfoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_more_info)
 
         //to add back button on screen 2
-        setSupportActionBar(more_info)
+        val toolbar = findViewById<Toolbar>(R.id.more_info)
+        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        more_info.setNavigationOnClickListener{
+        toolbar.setNavigationOnClickListener {
             onBackPressed()
         }
 
         // Extract the extras from the intent
         val parkingCharges = intent.getStringExtra("parking_charges")
         val parkingImageUrl = intent.getStringExtra("parkingImageUrl") // get the image URL
+        val timestamp = intent.getStringExtra("timestamp")
 
         val chargesTextView = findViewById<TextView>(R.id.chargesTextView)
-        val chargeRegex = Regex("""(\d+)\$""")
-        val chargeMatch = parkingCharges?.let { chargeRegex.find(it) }
-        val chargePerHour = chargeMatch?.groupValues?.getOrNull(1)?.toInt() ?: 0
-        val localizedChargeText = getString(R.string.pay_at_pay_station) + " " + chargePerHour + "$ " + getString(R.string.per_hr)
+//        val chargeRegex = Regex("""(\d+)\$""")
+//        val chargeMatch = parkingCharges?.let { chargeRegex.find(it) }
+//        val chargePerHour = chargeMatch?.groupValues?.getOrNull(1)?.toInt() ?: 0
+        val localizedChargeText = getString(R.string.pay_at_pay_station) + " " + parkingCharges + "$ " + getString(
+            R.string.per_hr
+        )
         chargesTextView.text = localizedChargeText
+
+        val timestampTextView = findViewById<TextView>(R.id.timestampTextView)
+        timestampTextView.text = timestamp
 
 
 
