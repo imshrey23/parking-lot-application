@@ -14,18 +14,37 @@
         tools:context=".MainActivity"
         android:id="@+id/main">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabCurrentLocation"
+        <ProgressBar
+            android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_gravity="right|center_vertical"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="16dp"
-            android:layout_marginRight="16dp"
-            app:tint="#4a80f5"
-            app:srcCompat="@drawable/ic_baseline_my_location_24" />
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:layout_gravity="center"
+            android:padding="8dp"
+            android:background="@android:color/white"
+            android:elevation="4dp"
+            android:visibility="gone" />
+
+<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+<!--            android:id="@+id/fabCurrentLocation"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_alignParentEnd="true"-->
+<!--            android:layout_alignParentBottom="true"-->
+<!--            android:layout_gravity="right|center_vertical"-->
+<!--            android:layout_marginTop="20dp"-->
+<!--            android:layout_marginBottom="16dp"-->
+<!--            android:layout_marginRight="16dp"-->
+<!--            app:tint="#4a80f5"-->
+<!--            app:srcCompat="@drawable/ic_baseline_my_location_24" />-->
 
 
 

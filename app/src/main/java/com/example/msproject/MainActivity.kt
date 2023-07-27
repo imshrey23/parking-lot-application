@@ -1,16 +1,20 @@
 package com.example.msproject
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.net.wifi.WifiConfiguration.AuthAlgorithm.strings
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
@@ -29,16 +33,19 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import android.provider.Settings
+import androidx.databinding.DataBindingUtil
+import com.example.msproject.view_model.MainViewModel.Companion.PERMISSIONS_REQUEST_LOCATION
+import com.example.msproject.view_model.http.HttpRequest
 //import kotlinx.android.synthetic.main.activity_main.*
 //import kotlinx.android.synthetic.main.activity_main.search_bar
 
 import java.util.*
 
 
-
 class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallback {
 
-//    var binding: ActivityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+    //    var binding: ActivityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
     lateinit var binding: ActivityMainBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var googleMap: GoogleMap
@@ -46,6 +53,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
     private var currentLocationMarker: Marker? = null
 
     lateinit var progressDialog: ProgressDialog
+
+    private val httpRequest = HttpRequest()
 
     fun showProgressDialog(message: String) {
         progressDialog = ProgressDialog(this)
@@ -72,6 +81,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        viewModel.startPeriodicDeletion()
         if (!Places.isInitialized()) {
             Places.initialize(applicationContext, "AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y")
         }
@@ -84,8 +94,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 PERMISSIONS_REQUEST_LOCATION
             )
-            viewModel.getCurrentLocationAndSendToAPI()
-            viewModel.apiHandler.post(viewModel.apiRunnable)
         } else {
             viewModel.getCurrentLocationAndSendToAPI()
             viewModel.apiHandler.post(viewModel.apiRunnable)
@@ -127,6 +135,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
             } else {
                 Toast.makeText(this, "Google Maps is not installed on this device", Toast.LENGTH_SHORT).show()
             }
+            val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+            val timeToReach = viewModel.view.timeToReach?.toLong()
+
+            val parkingLotName1 = viewModel.view.locationName
+            // Call the function to send data to the API
+            if (parkingLotName1 != null) {
+                if (timeToReach != null) {
+                    viewModel.sendDataToApi(parkingLotName1 , deviceId, timeToReach )
+                }
+            }
         }
 
         binding.searchBar.setOnClickListener(this)
@@ -144,6 +162,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
                     viewModel.lastSearchedLocationLat = null
                     viewModel.lastSearchedLocationLng = null
 
+                    viewModel.getCurrentLocationAndSendToAPI()
+
                 } else {
                     binding.searchBar.setCompoundDrawablesWithIntrinsicBounds(0, 0,
                         R.drawable.ic_cross, 0)
@@ -151,6 +171,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
                         binding.searchBar.text = null
                         viewModel.lastSearchedLocationLat = null
                         viewModel.lastSearchedLocationLng = null
+
+                        viewModel.getCurrentLocationAndSendToAPI()
                     }
 
                     if (!viewModel.isSearchActivityLaunched) {
@@ -165,7 +187,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
             }
 
             override fun afterTextChanged(s: Editable?) {
-                // Do nothig
             }
         })
 
@@ -174,6 +195,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
             binding.searchBar.setCompoundDrawablesWithIntrinsicBounds(0, 0,
                 R.drawable.search_bar_corner, 0)
             viewModel.isSearchBarEmpty = true
+
+            viewModel.getCurrentLocationAndSendToAPI()
         }
     }
 
@@ -235,10 +258,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnMapReadyCallba
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        viewModel.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSIONS_REQUEST_LOCATION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // permission was granted
+                viewModel.getCurrentLocationAndSendToAPI()
+                viewModel.apiHandler.post(viewModel.apiRunnable)
+            } else {
+                // permission denied, show a Toast message
+                Toast.makeText(this, "Permission denied to access location", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+
     }
 
     companion object {
         const val PERMISSIONS_REQUEST_LOCATION = 100
+    }
+
+    fun showPopupMessage(message: String) {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+        val alert = builder.create()
+        alert.show()
     }
 }
