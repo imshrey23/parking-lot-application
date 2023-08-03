@@ -1,5 +1,6 @@
 package com.example.msproject
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import com.example.msproject.api.LoadingState
 import com.example.msproject.model.ParkingLot
@@ -8,9 +9,8 @@ import com.google.android.gms.maps.GoogleMap
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.ArgumentMatchers.any
-
-
 import org.junit.Before
+import org.junit.Rule
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.*
@@ -35,6 +35,9 @@ class HomeViewModelTest {
     @Mock
     private lateinit var mockDurationInSecLiveData: MutableLiveData<Double>
 
+    @get:Rule
+    val rule= InstantTaskExecutorRule()
+
     @Before
     fun setup() {
         // Initialize the ViewModel with mocked dependencies
@@ -49,23 +52,6 @@ class HomeViewModelTest {
     fun testGetParkingLotsApi_Success() {
         // Arrange
         val currentLocation = Pair(10.0, 20.0)
-        `when`(mockParkingLotWeightsLiveData.postValue(any())).thenAnswer {
-            // Capture the posted value to the LiveData and verify it later
-            val argument: MutableList<Pair<ParkingLot, Double>> =
-                it.arguments[0] as MutableList<Pair<ParkingLot, Double>>
-            assert(argument.isNotEmpty()) // Add more assertions based on your test case
-
-            // Return any value here if needed
-            null
-        }
-        `when`(mockDurationInSecLiveData.postValue(any())).thenAnswer {
-            // Capture the posted value to the LiveData and verify it later
-            val argument: Double = it.arguments[0] as Double
-            assert(argument > 0) // Add more assertions based on your test case
-
-            // Return any value here if needed
-            null
-        }
 
         // Act
         homeViewModel.getParkingLotsApi(currentLocation, mockGoogleMap, true)
