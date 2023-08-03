@@ -1,4 +1,4 @@
-package com.example.msproject
+package com.example.msproject.ui.moreinfo
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

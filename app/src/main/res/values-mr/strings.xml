@@ -11,6 +11,8 @@
     <string name="image_caption">पार्किंगची प्रतिमा</string>
     <string name="spots">जागा</string>
     <string name="spot">जागा</string>
+    <string name="parking_full">तुम्ही तिथे पोहोचेपर्यंत पार्किंगची जागा भरलेली असेल</string>
+    <string name="map_not_installed">ह्या फोनवर गुगल मॅप स्थापित केलेले नाही</string>
 
 
 

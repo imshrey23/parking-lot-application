@@ -10,6 +10,8 @@
     <string name="image_caption">Parking Lot Image:</string>
     <string name="spots">spots</string>
     <string name="spot">spot</string>
+    <string name="parking_full">Parking lot will be full by the time you reach there</string>
+    <string name="map_not_installed">Google Maps is not installed on this device</string>
 
 
 
