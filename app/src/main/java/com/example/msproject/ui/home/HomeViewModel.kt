@@ -14,12 +14,13 @@ import com.example.msproject.model.ParkingLot
 import com.example.msproject.model.ParkingLotsResponse
 import com.google.android.gms.maps.GoogleMap
 import com.google.gson.Gson
-import java.util.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class HomeViewModel : ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor(private val httpRequest: ServiceHttpRequest) : ViewModel() {
 
     private val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
-    private val httpRequest = ServiceHttpRequest()
     var nearestParkingLotLiveData: MutableLiveData<ParkingLot>? = MutableLiveData<ParkingLot>()
     var parkingLotWeightsLiveData: MutableLiveData<MutableList<Pair<ParkingLot, Double>>>? =
         MutableLiveData<MutableList<Pair<ParkingLot, Double>>>()
@@ -31,13 +32,17 @@ class HomeViewModel : ViewModel() {
         googleMap: GoogleMap,
         showProgressLoader: Boolean
     ) {
-        httpRequest.callParkingLotsApi(loadingStateLiveData, showProgressLoader) { apiResponse ->
+        if (showProgressLoader){
+            loadingStateLiveData.postValue(LoadingState.LOADING)
+        }
+        httpRequest.callParkingLotsApi() { apiResponse ->
             if (apiResponse != null) {
-                Log.d("API Response ---------> ", apiResponse)
+                if(showProgressLoader){
+                    loadingStateLiveData.postValue(LoadingState.SUCCESS)
+                }
                 findNearestParkingLot(apiResponse, currentLocation, googleMap)
             } else {
-                // Handle error calling API
-                println("Error calling API.")
+                loadingStateLiveData.postValue(LoadingState.FAILURE)
             }
         }
     }
@@ -69,21 +74,19 @@ class HomeViewModel : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun findNearestParkingLot(
-        apiResponse: String,
+        apiResponse: ParkingLotsResponse,
         currentLocation: Pair<Double, Double>,
         googleMap: GoogleMap
     ) {
-        val gson = Gson()
 
-        val parkingLotsResponse = gson.fromJson(apiResponse, ParkingLotsResponse::class.java)
 
-        fetchNumberOfUsersForParkingLots(parkingLotsResponse)
+        fetchNumberOfUsersForParkingLots(apiResponse)
 
         // Create a list to store parking lots along with their weights
         val parkingLotWeights = mutableListOf<Pair<ParkingLot, Double>>()
 
         // Calculate the weight for each parking lot based on the number of empty spots and distance
-        for (parkingLot in parkingLotsResponse.parkingLots) {
+        for (parkingLot in apiResponse.parkingLots) {
             val availableSpots = parkingLot.number_of_empty_parking_slots
             val numberOfUsersForLot = parkingLotUsersCount[parkingLot.parking_lot_name]?.size ?: 0
             if (availableSpots > 0) {
@@ -147,7 +150,7 @@ class HomeViewModel : ViewModel() {
 
             httpRequest.callParkingLotApi(parkingLotName) { response ->
                 if (response != null) {
-                    val numberOfUsers = response.toIntOrNull() ?: 0
+                    val numberOfUsers = response?.numberOfUsers?: 0
                     parkingLotUsersCount[parkingLotName] =
                         (parkingLotUsersCount.getOrDefault(
                             parkingLotName,

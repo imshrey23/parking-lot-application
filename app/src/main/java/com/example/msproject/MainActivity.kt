@@ -6,9 +6,11 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.msproject.databinding.ActivityMainBinding
 import com.example.msproject.ui.home.HomeMapFragment
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityMainBinding
@@ -21,9 +23,9 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        val homeMapFragment = HomeMapFragment()
+
         supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container_view, homeMapFragment)
+            .add(R.id.fragment_container_view, HomeMapFragment())
             .commit()
     }
 }

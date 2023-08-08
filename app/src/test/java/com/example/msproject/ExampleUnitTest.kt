@@ -4,51 +4,13 @@ import android.content.ContentResolver
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.provider.Settings
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.MutableLiveData
-import com.example.msproject.api.LoadingState
 import com.example.msproject.common.CommonUtils
-import com.example.msproject.model.ParkingLot
-import com.example.msproject.ui.home.HomeViewModel
-import com.google.android.gms.maps.GoogleMap
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.mockito.ArgumentMatchers.any
-import org.junit.Before
-import org.junit.Rule
 import org.junit.runner.RunWith
-import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.MockitoJUnitRunner
-
-
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.lifecycle.LiveData
-import com.google.gson.Gson
-import com.nhaarman.mockitokotlin2.capture
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.slot
-import okhttp3.*
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import org.junit.Assert.*
-import org.mockito.ArgumentCaptor
-import org.mockito.Captor
-import org.mockito.Mockito
-import org.mockito.Mockito.*
-import org.mockito.MockitoAnnotations
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.capture
-import org.powermock.api.mockito.PowerMockito
-import java.io.IOException
-import java.net.URL
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 
 @RunWith(MockitoJUnitRunner::class)
@@ -118,6 +80,7 @@ class CommonUtilsTest {
         )
     }
 }
+
 //@RunWith(MockitoJUnitRunner::class)
 //class HomeViewModelTest {
 //

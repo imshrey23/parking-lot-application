@@ -3,6 +3,9 @@ package com.example.msproject.api
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import com.example.msproject.com.example.msproject.model.ParkingLotInfo
+import com.example.msproject.model.ParkingLotsResponse
+import com.google.gson.Gson
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -13,13 +16,10 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-class ServiceHttpRequest {
+class ServiceHttpRequest() {
 
-    @SuppressLint("SuspiciousIndentation")
     fun callParkingLotsApi(
-        loadingStateLiveData: MutableLiveData<LoadingState>,
-        showProgressLoader: Boolean,
-        callback: (String?) -> Unit
+        callback: (ParkingLotsResponse?) -> Unit
     ) {
         val url = ApiConstant.PARKING_LOTS_API
         val client = OkHttpClient()
@@ -28,31 +28,25 @@ class ServiceHttpRequest {
             .url(url)
             .get()
             .build()
-        if (showProgressLoader) {
-            loadingStateLiveData.postValue(LoadingState.LOADING)
-        }
+
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
                 Log.e("API Error", e.message ?: "Unknown Error")
-                if (showProgressLoader) {
-                    loadingStateLiveData.postValue(LoadingState.FAILURE)
-                }
                 callback(null)
             }
 
             override fun onResponse(call: okhttp3.Call, response: Response) {
-                if (showProgressLoader) {
-                    loadingStateLiveData.postValue(LoadingState.SUCCESS)
-                }
+
                 val responseString = response.body?.string()
-                callback(responseString)
+                val parkingLotResponse = Gson().fromJson(responseString, ParkingLotsResponse::class.java)
+                callback(parkingLotResponse)
             }
         })
     }
 
 
-    fun callParkingLotApi(parkingLotName: String, callback: (String?) -> Unit) {
+    fun callParkingLotApi(parkingLotName: String, callback: (ParkingLotInfo?) -> Unit) {
         val url = ApiConstant.PARKING_LOT_API + "$parkingLotName"
         val client = OkHttpClient()
 
@@ -69,7 +63,8 @@ class ServiceHttpRequest {
 
             override fun onResponse(call: okhttp3.Call, response: Response) {
                 val responseString = response.body?.string()
-                callback(responseString)
+                val parkingLotResponse = Gson().fromJson(responseString, ParkingLotInfo::class.java)
+                callback(parkingLotResponse)
             }
         })
     }
