@@ -1,10 +1,10 @@
-package com.example.msproject
+package com.example.msproject.ui.moreinfo
 
 import android.os.Bundle
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.bumptech.glide.Glide
+import com.example.msproject.R
 import com.github.chrisbanes.photoview.PhotoView
 
 
@@ -13,17 +13,13 @@ class FullScreenImageActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_full_screen_image)
 
-        // Set up the toolbar with back button
         val toolbar: Toolbar = findViewById(R.id.full_image)
-//        val captionTextView = findViewById<TextView>(R.string.image_caption)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
-        // Get the image view from the layout
         val photoView = findViewById<PhotoView>(R.id.photo_view)
 
-        // Load the image into the photo view
         val imageUrl = intent.getStringExtra("image_url")
         if (imageUrl != null) {
             Glide.with(this)
@@ -31,13 +27,8 @@ class FullScreenImageActivity : AppCompatActivity() {
                 .into(photoView)
         }
 
-//        val imageCaption = intent.getStringExtra("image_caption")
-//        if (imageCaption != null) {
-//            captionTextView.text = imageCaption
-//        }
     }
 
-    // Handle the back button click
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true

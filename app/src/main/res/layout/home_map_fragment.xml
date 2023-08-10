@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.example.msproject.ui.home.HomeViewModel" />
+    </data>
+
+    <com.google.android.material.circularreveal.CircularRevealFrameLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="ui.home.HomeMapFragment"
+        android:id="@+id/main">
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:layout_gravity="center"
+            android:padding="8dp"
+            android:background="@android:color/white"
+            android:elevation="4dp"
+            android:visibility="gone" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabMoreInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginTop="100dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="16dp"
+            app:tint="#000000"
+            app:srcCompat="@drawable/ic_action_add_24dp" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabNavigation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginTop="180dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="16dp"
+            app:elevation="80dp"
+            app:backgroundTint="#1A73E9"
+            app:srcCompat="@drawable/ic_baseline_directions_24" />
+
+        <fragment
+            android:id="@+id/map_fragment"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_location"
+            android:theme="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/add_screen_til_marginTop"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:background="@drawable/search_bar_corner"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="parent"
+            app:endIconMode="clear_text"
+            app:endIconDrawable="@drawable/ic_baseline_search_24"
+            app:boxBackgroundColor="@color/white">
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/search_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:hint="@string/search_bar_placeholder"
+                android:inputType="text"
+                android:textColor="@color/primary_text_color"
+                android:textColorHint="@color/secondary_text_color"
+                android:textSize="@dimen/search_bar_text_size"
+                tools:visibility="visible" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/bottomSheetLayout"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="@drawable/rounded_corner_background"
+                android:orientation="vertical"
+                app:elevation="8dp"
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="36dp"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/leftTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tebeau hall"
+                        android:textColor="#000000"
+                        android:textSize="23sp" />
+
+                    <TextView
+                        android:id="@+id/rightTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/spots"
+                        android:textColor="#000000"
+                        android:textSize="23sp"
+                        android:layout_alignParentRight="true" />
+                </RelativeLayout>
+            </LinearLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+    </com.google.android.material.circularreveal.CircularRevealFrameLayout>
+</layout>

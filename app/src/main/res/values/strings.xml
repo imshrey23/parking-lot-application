@@ -1,15 +1,17 @@
 <resources>
     <string name="app_name">Spot Finder</string>
-    <string name="search_bar_placeholder">Enter Location</string>
-    <string name="google_maps_api_key">AIzaSyDu-QiPUjWvgz9k4WH56Qj0w03Qs2eud9I</string>
+    <string name="search_bar_placeholder">Where to?</string>
+    <string name="google_maps_api_key">AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y</string>
     <string name="pay_at_pay_station">Pay at Pay Station</string>
     <string name="per_hr">per Hr</string>
     <string name="parking_charges_title" >Parking Charges:</string>
     <string name="parking_limit_title">Parking Time Limit:</string>
     <string name="parking_time_limit">%d hour parking</string>
-    <string name="image_caption">Parking Lot Image</string>
+    <string name="image_caption">Parking Lot Image:</string>
     <string name="spots">spots</string>
     <string name="spot">spot</string>
+    <string name="parking_full">Parking lot will be full by the time you reach there</string>
+    <string name="map_not_installed">Google Maps is not installed on this device</string>
 
 
 

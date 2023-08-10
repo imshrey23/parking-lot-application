@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.msproject">
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
 
     <application
+        android:name=".MainApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MSProject"
-        android:usesCleartextTraffic="true"
-        >
+        android:usesCleartextTraffic="true">
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_api_key" />
 
         <activity
-            android:name=".MoreInfoActivity"
-            android:exported="true"
-            android:label="Parking Lot Details"
-            android:screenOrientation="portrait"
+            android:name=".ui.moreinfo.FullScreenImageActivity"
             android:theme="@style/CustomNoActionBarTheme" />
-        <activity
-            android:name=".FullScreenImageActivity"
-            android:theme="@style/CustomNoActionBarTheme" />
-
 
 
         <activity
