@@ -69,33 +69,30 @@ class ServiceHttpRequest() {
         })
     }
 
-    // Method to delete entries older than 10 minutes from the API
+
     fun deleteOldEntriesFromApi() {
         try {
             val url = URL(ApiConstant.DELETE_OLD_RECORD)
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = "DELETE"
-            connection.connectTimeout = 5000 // Timeout in milliseconds (adjust as needed)
+            connection.connectTimeout = 5000
 
             val responseCode = connection.responseCode
 
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 println("Deleted old data.")
-                // Deletion was successful, do something if needed
             } else {
-                // Deletion failed, handle error
                 println("Failed to delete old data.")
             }
 
             connection.disconnect()
         } catch (e: Exception) {
-            // Deletion failed, handle error
             e.printStackTrace()
         }
     }
 
     fun sendDataToApi(parkingLotName: String, deviceId: String, timeToReach: Long) {
-        val urlString = ApiConstant.UPDATE_PARKING_LOT // Replace with your actual API endpoint URL
+        val urlString = ApiConstant.UPDATE_PARKING_LOT
 
         Thread {
             try {
@@ -118,15 +115,13 @@ class ServiceHttpRequest() {
                 val responseCode = connection.responseCode
 
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    println("success")
-                    // API call was successful, do something
+                    Log.i(String.toString(), "Success")
                 } else {
-                    // API call failed, handle error
+                    Log.i(String.toString(), "Error")
                 }
 
                 connection.disconnect()
             } catch (e: Exception) {
-                // API call failed, handle error
                 e.printStackTrace()
             }
         }.start()
@@ -146,3 +141,5 @@ class ServiceHttpRequest() {
     }
 
 }
+
+

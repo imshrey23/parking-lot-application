@@ -27,19 +27,15 @@ object CommonUtils {
     }
 
     fun translate(text: String, targetLanguage: String): String {
-        // Set up the translation service
         val translate = TranslateOptions.newBuilder()
             .setApiKey("AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y")
             .build()
             .service
 
-        // Perform the translation
         val translation: Translation = translate.translate(
             text,
             Translate.TranslateOption.targetLanguage(targetLanguage)
         )
-
-        // Return the translated text
         return translation.translatedText
     }
 

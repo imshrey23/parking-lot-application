@@ -86,8 +86,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
         if (!Places.isInitialized()) {
             Places.initialize(
-                requireActivity().applicationContext,
-                "AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y"
+                requireActivity().applicationContext, R.string.google_maps_api_key.toString()
             )
         }
 
@@ -125,9 +124,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
         binding.fabNavigation.setOnClickListener {
             binding.fabNavigation.bringToFront()
-            //navigate to external Map for Direction
             navigateToMap()
-            // Call the function to send data to the API
             if (parkingLotName != null) {
                 if (timeToReach != null) {
                     homeViewModel.sendDataToApi(
@@ -148,7 +145,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                         Place.Field.ADDRESS
                     )
 
-                    // p the autocomplete intent with a unique request code.
                     val intent =
                         Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
                             .build(requireActivity())
@@ -156,14 +152,14 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 } catch (e: Exception) {
                     e.printStackTrace()
                     isSearchActivityLaunched =
-                        true // Re-enable search bar clickability in case of exception
+                        true // Re-enable search bar clickability
                 }
             }
         }
 
         binding.searchBar.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Do nothing
+                //TODO: Complete this
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -221,7 +217,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             if (it.isNotEmpty()) {
                 updateUIElements()
             } else {
-                // No parking lot found with available spots
                 showPopupMessage(getString(R.string.parking_full))
             }
         })
@@ -235,7 +230,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun getCurrentLocationAndSendToAPI(showLoader: Boolean) {
-        // Get current location using fused location client
         if (ActivityCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -244,7 +238,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // If location permission is not given
             AlertDialog.Builder(requireActivity())
                 .setTitle("Location Permission Needed")
                 .setMessage("This application needs the location permission to find the nearest parking lot.")
@@ -263,14 +256,12 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         } else {
             fusedLocationClient.lastLocation
                 .addOnSuccessListener(requireActivity()) { location ->
-                    // Location retrieved successfully, send to API
                     location?.let {
                         val currentLocation = Pair(it.latitude, it.longitude)
                         homeViewModel.getParkingLotsApi(currentLocation, googleMap, showLoader)
                     }
                 }
                 .addOnFailureListener(requireActivity()) { e ->
-                    // Failed to retrieve location
                     Log.e("Location Error", e.message ?: "Unknown Error")
                 }
         }
@@ -347,12 +338,12 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 "mr" -> CommonUtils.translate(
                     parkingLotName!!,
                     "Mr"
-                ) // Replace with your translation function
+                )
                 "es" -> CommonUtils.translate(
                     parkingLotName!!,
                     "Es"
-                ) // Replace with your translation function
-                else -> parkingLotName // Default to original name if no translation available
+                )
+                else -> parkingLotName
             }
             val spotsStringResourceId = if (spotsAvailable == 1) {
                 R.string.spot
@@ -369,7 +360,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             binding.leftTextView.text = translatedLocationName
             binding.rightTextView.text = "$formattedSpotsAvailable $spotsString"
 
-            // Update the UI with the information about the nearest parking lot
             updateParkingLocationOnMap(googleMap, it.latitude.toDouble(), it.longitude.toDouble())
         })
 
@@ -379,7 +369,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             timeToReach =
                 durationInMilliSec?.let { it -> System.currentTimeMillis() + it }?.toLong()!!
 
-            // Convert milliseconds to minutes before the comparison
+
             if ((it ?: 0.0) > 600.0) {
                 val builder = AlertDialog.Builder(requireActivity())
                 builder.setTitle("Important Message")
@@ -415,7 +405,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             if (resultCode == Activity.RESULT_OK) {
                 if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
                     isSearchActivityLaunched =
-                        true // Re-enable search bar clickability after autocomplete intent is closed
+                        true
                     val place: Place = Autocomplete.getPlaceFromIntent(data!!)
                     lastSearchedLocationLat = place.latLng?.latitude
                     lastSearchedLocationLng = place.latLng?.longitude
@@ -426,13 +416,12 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                     homeViewModel.getParkingLotsApi(currentLocation, googleMap, true)
 
                     binding.searchBar.setText(place.name)
-                    // Update the map in the activity (MainActivity) using a callback method
                     onMapReady(googleMap)
                 }
             } else if (resultCode == Activity.RESULT_CANCELED) {
                 Log.e("Cancelled", "Cancelled")
                 isSearchActivityLaunched =
-                    true // Re-enable search bar clickability after autocomplete intent is closed
+                    true
             }
         }
     }
@@ -441,16 +430,13 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
 
-        // Enable the "My Location" button and handle its click event
         googleMap.isMyLocationEnabled = true
         googleMap.setOnMyLocationButtonClickListener {
-            // Check location permission before accessing the current location
             if (ContextCompat.checkSelfPermission(
                     requireActivity(),
                     Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                // Get the last known location and move the camera to it
                 fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     location?.let {
                         val latLng = LatLng(it.latitude, it.longitude)
@@ -458,7 +444,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                     }
                 }
             } else {
-                // Request location permission
                 ActivityCompat.requestPermissions(
                     requireActivity(),
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -479,12 +464,10 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSIONS_REQUEST_LOCATION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // permission was granted
                 getCurrentLocationAndSendToAPI(true)
                 Log.w("========================", "onRequestPermissionsResult")
                 apiHandler.post(apiRunnable)
             } else {
-                // permission denied, show a Toast message
                 Toast.makeText(
                     requireActivity(),
                     "Permission denied to access location",
@@ -518,8 +501,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         const val PLACE_AUTOCOMPLETE_REQUEST_CODE = 3
         const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
-        // Milliseconds interval for periodic deletion (3000ms = 3 seconds)
-        private const val DELETE_INTERVAL_MS = 3000
+        private const val DELETE_INTERVAL_MS = 6000
     }
 
 }

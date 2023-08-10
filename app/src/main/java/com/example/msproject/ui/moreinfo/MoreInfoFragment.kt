@@ -56,7 +56,7 @@ class MoreInfoFragment : Fragment(R.layout.more_info_fragment) {
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // Set up the toolbar
+        // TODO: back button
 //        (activity as AppCompatActivity?)!!.setSupportActionBar(binding.moreInfo)
 ////        (activity as MainActivity).setSupportActionBar(binding.moreInfo)
 //        (activity as AppCompatActivity?)!!.supportActionBar?.setDisplayHomeAsUpEnabled(true)
