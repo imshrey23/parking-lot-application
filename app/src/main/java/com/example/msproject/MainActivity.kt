@@ -7,8 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.msproject.databinding.ActivityMainBinding
 import com.example.msproject.ui.home.HomeMapFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {

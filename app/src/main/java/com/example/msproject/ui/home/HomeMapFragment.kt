@@ -55,7 +55,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
     private var lastSearchedLocationLng: Double? = null
     private var isSearchActivityLaunched: Boolean = true
     private val apiHandler = Handler()
-    private var mapFragment: SupportMapFragment? = null;
+    private var mapFragment: SupportMapFragment? = null
     private var timeToReach: Long = 0
     private var parkingLotName: String = ""
     private var isSearchBarEmpty: Boolean = true
@@ -64,11 +64,11 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = HomeMapFragmentBinding.inflate(inflater, container, false)
         homeViewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
-        homeViewModel.loadingStateLiveData.observe(requireActivity(), Observer {
+        homeViewModel.loadingStateLiveData.observe(requireActivity(), {
             when (it) {
                 LoadingState.LOADING -> {
                     showProgressDialog("Loading nearest parking lot...")
@@ -213,7 +213,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             getCurrentLocationAndSendToAPI(true)
         }
 
-        homeViewModel.parkingLotWeightsLiveData?.observe(requireActivity(), Observer {
+        homeViewModel.parkingLotWeightsLiveData?.observe(requireActivity(), {
             if (it.isNotEmpty()) {
                 updateUIElements()
             } else {
@@ -328,8 +328,8 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
     private fun updateUIElements() {
 
-        homeViewModel.nearestParkingLotLiveData?.observe(requireActivity(), Observer {
-            Log.d("----------->", it.toString());
+        homeViewModel.nearestParkingLotLiveData?.observe(requireActivity(), {
+            Log.d("----------->", it.toString())
 
             parkingLotName = it.parking_lot_name
             val spotsAvailable = it.number_of_empty_parking_slots
@@ -360,10 +360,10 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             binding.leftTextView.text = translatedLocationName
             binding.rightTextView.text = "$formattedSpotsAvailable $spotsString"
 
-            updateParkingLocationOnMap(googleMap, it.latitude.toDouble(), it.longitude.toDouble())
+            updateParkingLocationOnMap(googleMap, it.latitude, it.longitude)
         })
 
-        homeViewModel.durationInSecLiveData?.observe(requireActivity(), Observer {
+        homeViewModel.durationInSecLiveData?.observe(requireActivity(), {
             val durationInMilliSec = it?.let { it * 1000 }
             timeToReach =
                 durationInMilliSec?.let { it -> System.currentTimeMillis() + it }?.toLong()!!
@@ -500,7 +500,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         const val PLACE_AUTOCOMPLETE_REQUEST_CODE = 3
         const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
-        private const val DELETE_INTERVAL_MS = 6000
     }
 
 }

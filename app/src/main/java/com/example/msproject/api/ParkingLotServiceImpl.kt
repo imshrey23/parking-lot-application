@@ -17,7 +17,7 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-class ServiceHttpRequest() {
+class ServiceHttpRequest {
 
     fun callParkingLotsApi(
         callback: (ParkingLotsResponse?) -> Unit
@@ -48,7 +48,7 @@ class ServiceHttpRequest() {
 
 
     fun callParkingLotApi(parkingLotName: String, callback: (ParkingLotInfo?) -> Unit) {
-        val url = ApiConstant.PARKING_LOT_API + "$parkingLotName"
+        val url = ApiConstant.PARKING_LOT_API + parkingLotName
         val client = OkHttpClient()
 
         val request = Request.Builder()

@@ -23,8 +23,6 @@ import androidx.test.rule.GrantPermissionRule
 @RunWith(AndroidJUnit4::class)
 class MainActivityTest {
 
-    private lateinit var mainActivity: MainActivity
-
     @Before
     fun setUp() {
         // Initialize ActivityScenario

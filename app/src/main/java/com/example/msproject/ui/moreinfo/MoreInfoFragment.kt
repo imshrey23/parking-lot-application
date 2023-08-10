@@ -21,12 +21,12 @@ class MoreInfoFragment : Fragment(R.layout.more_info_fragment) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = MoreInfoFragmentBinding.inflate(inflater, container, false)
 
 
         var homeViewModel = ViewModelProviders.of(requireActivity())[HomeViewModel::class.java]
-        homeViewModel.nearestParkingLotLiveData?.observe(viewLifecycleOwner, Observer {
+        homeViewModel.nearestParkingLotLiveData?.observe(viewLifecycleOwner, {
 
             val chargesTextView = binding.chargesTextView
             val localizedChargeText =

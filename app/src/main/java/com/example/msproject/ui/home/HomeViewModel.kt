@@ -33,7 +33,7 @@ class HomeViewModel @Inject constructor(private val httpRequest: ServiceHttpRequ
         if (showProgressLoader){
             loadingStateLiveData.postValue(LoadingState.LOADING)
         }
-        httpRequest.callParkingLotsApi() { apiResponse ->
+        httpRequest.callParkingLotsApi { apiResponse ->
             if (apiResponse != null) {
                 if(showProgressLoader){
                     loadingStateLiveData.postValue(LoadingState.SUCCESS)
@@ -82,7 +82,7 @@ class HomeViewModel @Inject constructor(private val httpRequest: ServiceHttpRequ
             val numberOfUsersForLot = parkingLotUsersCount[parkingLot.parking_lot_name]?.size ?: 0
             if (availableSpots > 0) {
                 val destinationLocation =
-                    Pair(parkingLot.latitude.toDouble(), parkingLot.longitude.toDouble())
+                    Pair(parkingLot.latitude, parkingLot.longitude)
                 val duration = getDurationInSecs(currentLocation, destinationLocation)
 
                 if (duration != null) {
@@ -97,7 +97,7 @@ class HomeViewModel @Inject constructor(private val httpRequest: ServiceHttpRequ
             val nearestParkingLot = sortedParkingLots.first().first
             nearestParkingLotLiveData?.postValue(nearestParkingLot)
             val destinationLocation =
-                Pair(nearestParkingLot.latitude.toDouble(), nearestParkingLot.longitude.toDouble())
+                Pair(nearestParkingLot.latitude, nearestParkingLot.longitude)
             val durationInSec = getDurationInSecs(currentLocation, destinationLocation)
 
             durationInSecLiveData?.postValue(durationInSec)

@@ -12,7 +12,7 @@ import com.google.gson.Gson
 
 object CommonUtils {
 
-    fun isMapsInstalled(packageManager: PackageManager): Boolean? {
+    fun isMapsInstalled(packageManager: PackageManager): Boolean {
         val mapsPackage = "com.google.android.apps.maps"
         val isMapsInstalled = try {
             packageManager.getPackageInfo(mapsPackage, 0)
