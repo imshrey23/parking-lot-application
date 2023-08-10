@@ -3,6 +3,7 @@ package com.example.msproject.api
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import com.example.msproject.R
 import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.example.msproject.model.ParkingLotsResponse
 import com.google.gson.Gson
@@ -80,9 +81,9 @@ class ServiceHttpRequest() {
             val responseCode = connection.responseCode
 
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                println("Deleted old data.")
+                Log.i("deleteOldEntriesFromApi", "Deleted old data.")
             } else {
-                println("Failed to delete old data.")
+                Log.e("deleteOldEntriesFromApi","Failed to delete old data.")
             }
 
             connection.disconnect()
@@ -136,7 +137,7 @@ class ServiceHttpRequest() {
                 "origins=${origin.first},${origin.second}&" +
                 "destinations=${destination.first},${destination.second}&" +
                 "mode=driving&" +
-                "key=AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y"
+                "key=${R.string.google_maps_api_key}"
         return URL(url).readText()
     }
 

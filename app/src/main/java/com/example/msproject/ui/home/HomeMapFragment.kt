@@ -365,7 +365,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
         homeViewModel.durationInSecLiveData?.observe(requireActivity(), Observer {
             val durationInMilliSec = it?.let { it * 1000 }
-            print(System.currentTimeMillis())
             timeToReach =
                 durationInMilliSec?.let { it -> System.currentTimeMillis() + it }?.toLong()!!
 
