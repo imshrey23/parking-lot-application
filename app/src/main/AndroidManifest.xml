@@ -20,7 +20,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y" />
+            android:value="${googleApiKey}" />
 
         <activity
             android:name=".ui.moreinfo.FullScreenImageActivity"
