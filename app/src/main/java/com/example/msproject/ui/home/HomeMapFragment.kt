@@ -87,7 +87,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         homeViewModel.startPeriodicDeletion()
 
         if (!Places.isInitialized()) {
-            val s = BuildConfig.PLACES_API_KEY
             Places.initialize(
                 requireActivity().applicationContext, BuildConfig.PLACES_API_KEY
             )
