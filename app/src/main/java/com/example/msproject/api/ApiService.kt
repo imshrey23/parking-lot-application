@@ -1,9 +1,7 @@
 package com.example.msproject.api
 
-import android.annotation.SuppressLint
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import com.example.msproject.R
+import com.example.msproject.BuildConfig
 import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.example.msproject.model.ParkingLotsResponse
 import com.google.gson.Gson
@@ -17,9 +15,9 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-class ServiceHttpRequest {
+class ApiService {
 
-    fun callParkingLotsApi(
+    fun getParkingLots(
         callback: (ParkingLotsResponse?) -> Unit
     ) {
         val url = ApiConstant.PARKING_LOTS_API
@@ -47,7 +45,7 @@ class ServiceHttpRequest {
     }
 
 
-    fun callParkingLotApi(parkingLotName: String, callback: (ParkingLotInfo?) -> Unit) {
+    fun getParkingLotInfo(parkingLotName: String, callback: (ParkingLotInfo?) -> Unit) {
         val url = ApiConstant.PARKING_LOT_API + parkingLotName
         val client = OkHttpClient()
 
@@ -71,7 +69,7 @@ class ServiceHttpRequest {
     }
 
 
-    fun deleteOldEntriesFromApi() {
+    fun deleteExpiredDocuments() {
         try {
             val url = URL(ApiConstant.DELETE_OLD_RECORD)
             val connection = url.openConnection() as HttpURLConnection
@@ -81,9 +79,9 @@ class ServiceHttpRequest {
             val responseCode = connection.responseCode
 
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                Log.i("deleteOldEntriesFromApi", "Deleted old data.")
+                Log.i("deleteExpiredDocuments", "Deleted old data.")
             } else {
-                Log.e("deleteOldEntriesFromApi","Failed to delete old data.")
+                Log.e("deleteExpiredDocuments","Failed to delete old data.")
             }
 
             connection.disconnect()
@@ -92,7 +90,7 @@ class ServiceHttpRequest {
         }
     }
 
-    fun sendDataToApi(parkingLotName: String, deviceId: String, timeToReach: Long) {
+    fun sendDataToDB(parkingLotName: String, deviceId: String, timeToReach: Long) {
         val urlString = ApiConstant.UPDATE_PARKING_LOT
 
         Thread {
@@ -137,7 +135,7 @@ class ServiceHttpRequest {
                 "origins=${origin.first},${origin.second}&" +
                 "destinations=${destination.first},${destination.second}&" +
                 "mode=driving&" +
-                "key=${R.string.google_maps_api_key}"
+                "key=${BuildConfig.PLACES_API_KEY}"
         return URL(url).readText()
     }
 

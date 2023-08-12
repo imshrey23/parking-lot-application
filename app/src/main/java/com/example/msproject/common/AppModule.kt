@@ -1,6 +1,6 @@
 package com.example.msproject.com.example.msproject.common
 
-import com.example.msproject.api.ServiceHttpRequest
+import com.example.msproject.api.ApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,5 +14,5 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun serviceHttpRequest(): ServiceHttpRequest = ServiceHttpRequest()
+    fun serviceHttpRequest(): ApiService = ApiService()
 }

@@ -3,6 +3,7 @@ package com.example.msproject.common
 import android.content.ContentResolver
 import android.content.pm.PackageManager
 import android.provider.Settings
+import com.example.msproject.BuildConfig
 import com.example.msproject.R
 import com.example.msproject.model.distance.DistanceMatrixResponse
 import com.google.cloud.translate.Translate
@@ -29,7 +30,7 @@ object CommonUtils {
 
     fun translate(text: String, targetLanguage: String): String {
         val translate = TranslateOptions.newBuilder()
-            .setApiKey(R.string.google_maps_api_key.toString())
+            .setApiKey(BuildConfig.PLACES_API_KEY)
             .build()
             .service
 
