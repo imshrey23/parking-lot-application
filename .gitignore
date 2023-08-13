@@ -34,6 +34,6 @@ google-services.json
 
 .env
 
-*/Mock_server/.env
-
-*/Mock_server/node_modules
+# Node related
+Mock_server/.env
+Mock_server/node_modules/
