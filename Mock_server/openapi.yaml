@@ -1,0 +1,83 @@
+openapi: 3.0.0
+info:
+  title: Parking Spot Soft Reservation
+  version: 0.0.1
+  description: SpotFinder is an application designed to provide real time availability of parking spaces on campus.
+  contact:
+    email: dhumes@oregonstate.edu
+servers:
+  - url: http://localhost:8000/
+tags:
+  - name: Reservation data
+    description: Required data for Soft Reservation
+    
+
+paths:
+  /reserveParkingSpot:
+    post:
+      tags:
+        - Users data
+      summary: Add or update reserved parking spot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parkingLotName:
+                  type: string
+                deviceId:
+                  type: string
+                timeToReachDestination:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Data added or updated successfully
+        '500':
+          description: Something went wrong
+
+  /reservedParkingSpot:
+    delete:
+      tags:
+        - Users data
+      summary: Delete old parking spots
+      responses:
+        '200':
+          description: Old data deleted successfully
+        '500':
+          description: Something went wrong
+
+  /parkingLots/{parkingLotName}:
+    get:
+      tags:
+        - Users data
+      summary: Get parking lot information
+      parameters:
+        - in: path
+          name: parkingLotName
+          schema:
+            type: string
+          required: true
+          description: Name of the parking lot
+      responses:
+        '200':
+          description: Parking lot information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  parkingLotName:
+                    type: string
+                  numberOfUsers:
+                    type: integer
+                example:
+                  parkingLotName: "Lot A"
+                  numberOfUsers: 10
+        '500':
+          description: Something went wrong
+
+
+

@@ -33,3 +33,7 @@ google-services.json
 *.hprof
 
 .env
+
+*/Mock_server/.env
+
+*/Mock_server/node_modules
