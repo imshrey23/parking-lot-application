@@ -19,7 +19,7 @@ import io.mockk.*
 class CommonUtilsTest {
 
     @Test
-    fun testIsMapsInstalled() {
+    fun `maps installed, isMapInstalled returns true`() {
         val packageManager = mockk<PackageManager>()
         val packageName = "com.google.android.apps.maps"
 
@@ -28,7 +28,12 @@ class CommonUtilsTest {
         } returns mockk()
 
         assertTrue(CommonUtils.isMapsInstalled(packageManager))
+    }
 
+    @Test
+    fun `maps not installed, isMapsInstalled returns false`() {
+        val packageManager = mockk<PackageManager>()
+        val packageName = "com.google.android.apps.maps"
         every {
             packageManager.getPackageInfo(packageName, 0)
         } throws PackageManager.NameNotFoundException()
@@ -37,11 +42,10 @@ class CommonUtilsTest {
     }
 
     @Test
-    fun testGetDeviceId() {
+    fun `get deviceId , returns expected device ID`() {
         val contentResolver = mockk<ContentResolver>()
         val androidId = "test_android_id"
 
-        // Mock the Settings.Secure static method
         mockkStatic(Settings.Secure::class)
         every { Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) } returns androidId
 
@@ -51,7 +55,7 @@ class CommonUtilsTest {
     }
 
     @Test
-    fun testTranslate() {
+    fun `translate given text to target language, returns expected translation`() {
         val text = "Hello"
         val targetLanguage = "es"
         val translatedText = "Hola"

@@ -70,7 +70,7 @@ class ParkingLotsApiService {
     fun getDistanceMatrix(
         origin: Pair<Double, Double>,
         destination: Pair<Double, Double>
-    ): Double? {
+    ): Double {
         val url = ApiConstant.DISTANCE_MATRIX +
                 "origins=${origin.first},${origin.second}&" +
                 "destinations=${destination.first},${destination.second}&" +
@@ -80,15 +80,19 @@ class ParkingLotsApiService {
 
         val response = URL(url).readText()
         val distanceMatrixResponse = Gson().fromJson(response, DistanceMatrixResponse::class.java)
-        return if (distanceMatrixResponse.rows.isNotEmpty() &&
+
+        if (distanceMatrixResponse.rows.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements[0].duration != null
         ) {
-            distanceMatrixResponse.rows[0].elements[0].duration?.value?.toDouble()
+            return distanceMatrixResponse.rows[0].elements[0].duration?.value?.toDouble()
+                ?: throw Exception("Duration value is unexpectedly null.")
         } else {
-            null
+            throw Exception("Invalid response format or missing data.")
         }
     }
+
+
 }
 
 
