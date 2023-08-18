@@ -19,7 +19,7 @@ import io.mockk.*
 class CommonUtilsTest {
 
     @Test
-    fun `maps installed, isMapInstalled returns true`() {
+    fun testGivenPackageManager_whenMapsIsInstalled_shouldReturnTrue() {
         val packageManager = mockk<PackageManager>()
         val packageName = "com.google.android.apps.maps"
 
@@ -31,7 +31,7 @@ class CommonUtilsTest {
     }
 
     @Test
-    fun `maps not installed, isMapsInstalled returns false`() {
+    fun testGivenPackageManager_whenMapsIsNotInstalled_shouldReturnFalse() {
         val packageManager = mockk<PackageManager>()
         val packageName = "com.google.android.apps.maps"
         every {
@@ -42,7 +42,7 @@ class CommonUtilsTest {
     }
 
     @Test
-    fun `get deviceId , returns expected device ID`() {
+    fun testGivenContentResolver_whenGetDeviceIdIsCalled_shouldReturnAndroidId() {
         val contentResolver = mockk<ContentResolver>()
         val androidId = "test_android_id"
 
@@ -55,7 +55,7 @@ class CommonUtilsTest {
     }
 
     @Test
-    fun `translate given text to target language, returns expected translation`() {
+    fun `testGivenTextAndLanguage_whenTranslateIsCalled_shouldReturnTranslatedText`() {
         val text = "Hello"
         val targetLanguage = "es"
         val translatedText = "Hola"
