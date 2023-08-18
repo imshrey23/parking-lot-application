@@ -55,7 +55,7 @@ class CommonUtilsTest {
     }
 
     @Test
-    fun `testGivenTextAndLanguage_whenTranslateIsCalled_shouldReturnTranslatedText`() {
+    fun testGivenTextAndLanguage_whenTranslateIsCalled_shouldReturnTranslatedText() {
         val text = "Hello"
         val targetLanguage = "es"
         val translatedText = "Hola"
