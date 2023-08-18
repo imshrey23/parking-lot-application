@@ -1,6 +1,7 @@
 package com.example.msproject.com.example.msproject.api.ApiService
 
 import android.util.Log
+import com.example.msproject.BuildConfig
 import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.example.msproject.api.model.ParkingLotsResponse
 import com.example.msproject.api.model.distance.DistanceMatrixResponse
@@ -75,7 +76,7 @@ class ParkingLotsApiService {
                 "destinations=${destination.first},${destination.second}&" +
                 "mode=driving&" +
                 "departure_time=now&" +
-                "key=AIzaSyCvSl5ugDPB8g_NPPEtK2NwMqB6D0zzF0Y"
+                "key=${BuildConfig.PLACES_API_KEY}"
 
         val response = URL(url).readText()
         val distanceMatrixResponse = Gson().fromJson(response, DistanceMatrixResponse::class.java)
