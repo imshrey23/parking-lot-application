@@ -6,11 +6,11 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.msproject.api.LoadingState
-import com.example.msproject.api.ApiService
-import com.example.msproject.common.CommonUtils
-import com.example.msproject.model.ParkingLot
-import com.example.msproject.model.ParkingLotsResponse
+import com.example.msproject.com.example.msproject.api.ApiService.LoadingState
+import com.example.msproject.com.example.msproject.api.ApiService.ParkingLotsApiService
+import com.example.msproject.api.model.ParkingLot
+import com.example.msproject.api.model.ParkingLotsResponse
+import com.example.msproject.com.example.msproject.ui.home.HomeRepository
 import com.google.android.gms.maps.GoogleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -18,7 +18,8 @@ import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val apiService: ApiService)  : ViewModel() {
+class HomeViewModel @Inject constructor(parkingLotsApiService: ParkingLotsApiService) :
+    ViewModel() {
 
 
     var nearestParkingLotLiveData: MutableLiveData<ParkingLot>? = MutableLiveData<ParkingLot>()
@@ -36,31 +37,38 @@ class HomeViewModel @Inject constructor(private val apiService: ApiService)  : V
         loadingStateLiveData.postValue(LoadingState.FAILURE)
     }
 
-    fun getParkingLotsApi(
+    var homeRepository: HomeRepository? = null
+
+    init {
+        homeRepository = HomeRepository(parkingLotsApiService)
+    }
+
+    fun getParkingLots(
         currentLocation: Pair<Double, Double>,
         googleMap: GoogleMap,
         showProgressLoader: Boolean
     ) {
-        if (showProgressLoader){
+        if (showProgressLoader) {
             loadingStateLiveData.postValue(LoadingState.LOADING)
         }
-        viewModelScope.launch {
-            withContext(Dispatchers.IO){
+        viewModelScope.launch(exceptionHandler) {
+            withContext(Dispatchers.IO) {
                 try {
-                    apiService.getParkingLots { apiResponse ->
-                        if (apiResponse != null) {
-                            if (showProgressLoader) {
-                                loadingStateLiveData.postValue(LoadingState.SUCCESS)
-                            }
-                            fetchNumberOfUsersForParkingLots(apiResponse)
-                            findNearestParkingLot(apiResponse, currentLocation, googleMap)
-                        } else {
-                            if (showProgressLoader) {
-                                loadingStateLiveData.postValue(LoadingState.FAILURE)
-                            }
+                    val parkingLotsResp = homeRepository?.getParkingLots()
+                    if (parkingLotsResp != null) {
+                        if (showProgressLoader) {
+                            loadingStateLiveData.postValue(LoadingState.SUCCESS)
+                        }
+                        getNumberOfUsersForParkingLots(parkingLotsResp)
+                        getNearestParkingLot(parkingLotsResp, currentLocation, googleMap)
+                    } else {
+                        // Handle error calling API
+                        println("Error calling API.")
+                        if (showProgressLoader) {
+                            loadingStateLiveData.postValue(LoadingState.FAILURE)
                         }
                     }
-                } catch (networkError: IOException ){
+                } catch (networkError: IOException) {
                     if (showProgressLoader) {
                         loadingStateLiveData.postValue(LoadingState.FAILURE)
                     }
@@ -69,40 +77,42 @@ class HomeViewModel @Inject constructor(private val apiService: ApiService)  : V
         }
     }
 
-    private fun fetchNumberOfUsersForParkingLots(parkingLotsResponse: ParkingLotsResponse) {
+    private fun getNumberOfUsersForParkingLots(parkingLotsResponse: ParkingLotsResponse) {
         parkingLotUsersCount.clear()
 
         for (parkingLot in parkingLotsResponse.parkingLots) {
             val parkingLotName = parkingLot.parking_lot_name
             viewModelScope.launch(exceptionHandler) {
-                try{
-                    apiService.getParkingLotInfo(parkingLotName) { response ->
-                        if (response != null) {
-                            val numberOfUsers = response?.numberOfUsers?: 0
-                            parkingLotUsersCount[parkingLotName] =
-                                (parkingLotUsersCount.getOrDefault(
-                                    parkingLotName,
-                                    mutableSetOf()
-                                ) + numberOfUsers) as MutableSet<String>
-                        }
+                try {
+                    val parkingLotInfoResp = homeRepository?.getParkingLotInfo(parkingLotName)
+                    if (parkingLotInfoResp != null) {
+                        val numberOfUsers = parkingLotInfoResp.numberOfUsers
+                        parkingLotUsersCount[parkingLotName] =
+                            (parkingLotUsersCount.getOrDefault(
+                                parkingLotName,
+                                mutableSetOf()
+                            ) + numberOfUsers) as MutableSet<String>
                     }
-                }catch (networkError: IOException){
-                    Log.e("fetchNumberOfUsersForParkingLots" , "Request to get number of users for parking lots failed")
+                } catch (networkError: IOException) {
+                    Log.e(
+                        "getNumberOfUsersForParkingLots",
+                        "Request to get number of users for parking lots failed"
+                    )
                 }
             }
         }
     }
 
-    fun sendDataToApi(parkingLotName: String, deviceId: String, timeToReach: Long) {
+    fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
         viewModelScope.launch(exceptionHandler) {
-            withContext(Dispatchers.IO){
-                apiService.sendDataToDB(parkingLotName, deviceId, timeToReach)
+            withContext(Dispatchers.IO) {
+                homeRepository?.reserveParkingSpot(parkingLotName, deviceId, timeToReach)
             }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun findNearestParkingLot(
+    fun getNearestParkingLot(
         apiResponse: ParkingLotsResponse,
         currentLocation: Pair<Double, Double>,
         googleMap: GoogleMap
@@ -137,31 +147,29 @@ class HomeViewModel @Inject constructor(private val apiService: ApiService)  : V
     }
 
 
-    private fun getDurationInSecs(
+    fun getDurationInSecs(
         currentLocation: Pair<Double, Double>,
         destinationLocation: Pair<Double, Double>
     ): Double? {
 
-        val distanceMatrixResp =
-            apiService.callDistanceMatrixApi(currentLocation, destinationLocation)
-        return CommonUtils.getDrivingDurationFromDistanceMatrixApiResponse(distanceMatrixResp)
+        return homeRepository?.getDistanceMatrix(currentLocation, destinationLocation)
     }
 
-    fun startPeriodicDeletion() {
-        job = scope.launch {
-            withContext(Dispatchers.IO) {
-                while (true) {
-                    apiService.deleteExpiredDocuments()
-                    delay(DELETE_INTERVAL_MS.toLong())
-                }
-            }
-        }
-    }
-
-    fun removeJobUpdates(){
-        job?.cancel()
-        job = null
-    }
+//    fun startPeriodicDeletion() {
+//        job = scope.launch {
+//            withContext(Dispatchers.IO) {
+//                while (true) {
+//                    homeRepository?.deleteExpiredDocuments()
+//                    delay(DELETE_INTERVAL_MS.toLong())
+//                }
+//            }
+//        }
+//    }
+//
+//    fun removeJobUpdates() {
+//        job?.cancel()
+//        job = null
+//    }
 
 
     companion object {

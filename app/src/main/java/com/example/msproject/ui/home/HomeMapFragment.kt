@@ -10,8 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -21,11 +19,10 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.msproject.BuildConfig
 import com.example.msproject.R
-import com.example.msproject.api.LoadingState
+import com.example.msproject.com.example.msproject.api.ApiService.LoadingState
 import com.example.msproject.common.CommonUtils
 import com.example.msproject.databinding.HomeMapFragmentBinding
 import com.example.msproject.ui.moreinfo.MoreInfoFragment
@@ -41,9 +38,10 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
-
+@AndroidEntryPoint
 class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback {
 
 
@@ -70,7 +68,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
         binding = HomeMapFragmentBinding.inflate(inflater, container, false)
         homeViewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
-        homeViewModel.loadingStateLiveData.observe(requireActivity(), Observer {
+        homeViewModel.loadingStateLiveData.observe(requireActivity(), {
             when (it) {
                 LoadingState.LOADING -> {
                     showProgressDialog("Loading nearest parking lot...")
@@ -84,7 +82,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             }
         })
 
-        homeViewModel.startPeriodicDeletion()
+//        homeViewModel.startPeriodicDeletion()
 
         if (!Places.isInitialized()) {
             Places.initialize(
@@ -106,8 +104,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 PERMISSIONS_REQUEST_LOCATION
             )
         } else {
-//            getCurrentLocationAndSendToAPI(true)
-            Log.w("========================", "onCreate")
             apiHandler.post(apiRunnable)
         }
         mapFragment =
@@ -126,10 +122,10 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
         binding.fabNavigation.setOnClickListener {
             binding.fabNavigation.bringToFront()
-            navigateToMap()
+            openGoogleMaps()
             if (parkingLotName != null) {
                 if (timeToReach != null) {
-                    homeViewModel.sendDataToApi(
+                    homeViewModel.reserveParkingSpot(
                         parkingLotName,
                         CommonUtils.getDeviceId(requireActivity().contentResolver),
                         timeToReach
@@ -138,7 +134,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             }
         }
 
-        binding.tilLocation.setEndIconOnClickListener{
+        binding.tilLocation.setEndIconOnClickListener {
             binding.searchBar.setText("")
             binding.searchBar.text = null
             binding.searchBar.isSelected = false
@@ -169,52 +165,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             }
         }
 
-        binding.searchBar.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                //TODO: Complete this
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                isSearchBarEmpty = s?.isEmpty() ?: true
-                if (isSearchBarEmpty) {
-                    binding.searchBar.setCompoundDrawablesWithIntrinsicBounds(
-                        0, 0,
-                        R.drawable.search_bar_corner, 0
-                    )
-                    lastSearchedLocationLat = null
-                    lastSearchedLocationLng = null
-
-                    getCurrentLocationAndSendToAPI(false)
-
-                } else {
-                    binding.searchBar.setCompoundDrawablesWithIntrinsicBounds(
-                        0, 0,
-                        R.drawable.ic_cross, 0
-                    )
-                    binding.searchBar.setOnClickListener {
-                        binding.searchBar.text = null
-                        lastSearchedLocationLat = null
-                        lastSearchedLocationLng = null
-
-                        getCurrentLocationAndSendToAPI(true)
-                    }
-
-                    if (!isSearchActivityLaunched) {
-                        val intent = Autocomplete.IntentBuilder(
-                            AutocompleteActivityMode.FULLSCREEN,
-                            listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
-                        ).build(requireActivity())
-                        startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE)
-                        isSearchActivityLaunched = true
-                    }
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-            }
-        })
-
-        homeViewModel.parkingLotWeightsLiveData?.observe(requireActivity(), Observer {
+        homeViewModel.parkingLotWeightsLiveData?.observe(requireActivity(), {
             if (it.isNotEmpty()) {
                 updateUIElements()
             } else {
@@ -222,10 +173,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             }
         })
         return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -258,7 +205,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 .addOnSuccessListener(requireActivity()) { location ->
                     location?.let {
                         val currentLocation = Pair(it.latitude, it.longitude)
-                        homeViewModel.getParkingLotsApi(currentLocation, googleMap, showLoader)
+                        homeViewModel.getParkingLots(currentLocation, googleMap, showLoader)
                     }
                 }
                 .addOnFailureListener(requireActivity()) { e ->
@@ -278,7 +225,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                     lastSearchedLocationLng ?: 0.0
                 )
 
-                homeViewModel.getParkingLotsApi(currentLocation, googleMap, false)
+                homeViewModel.getParkingLots(currentLocation, googleMap, false)
 
             } else if (isSearchBarEmpty) {
                 isSearchBarEmpty = false
@@ -292,11 +239,10 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
     }
 
 
-    private fun navigateToMap() {
-        val latitude = 29.636137668369987 // destination latitude
-        val longitude = -123.279363220437  // destination longitude
-        val label = "Destination Label" // destination label for display
-        val gmmIntentUri = Uri.parse("google.navigation:q=$latitude,$longitude&label=$label")
+    private fun openGoogleMaps() {
+        val label = "Destination Label"
+        val gmmIntentUri =
+            Uri.parse("google.navigation:q=$lastSearchedLocationLat,$lastSearchedLocationLng&label=$label")
         val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
         val mapsPackage = "com.google.android.apps.maps"
 
@@ -328,7 +274,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
     private fun updateUIElements() {
 
-        homeViewModel.nearestParkingLotLiveData?.observe(requireActivity(), Observer {
+        homeViewModel.nearestParkingLotLiveData?.observe(requireActivity(), {
             Log.d("----------->", it.toString())
 
             parkingLotName = it.parking_lot_name
@@ -336,11 +282,11 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             val locale: Locale = Locale.getDefault()
             val translatedLocationName = when (locale.language) {
                 "mr" -> CommonUtils.translate(
-                    parkingLotName!!,
+                    parkingLotName,
                     "Mr"
                 )
                 "es" -> CommonUtils.translate(
-                    parkingLotName!!,
+                    parkingLotName,
                     "Es"
                 )
                 else -> parkingLotName
@@ -369,7 +315,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 durationInMilliSec?.let { it -> System.currentTimeMillis() + it }?.toLong()!!
 
 
-            if ((it ?: 0.0) > 600.0 && showAlert) {
+            if (it > 600.0 && showAlert) {
                 val builder = AlertDialog.Builder(requireActivity())
                 builder.setTitle("Important Message")
                 builder.setMessage("Please check when you are 15 mins away from the destination in order to get reliable data.")
@@ -414,7 +360,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                         lastSearchedLocationLat ?: 0.0,
                         lastSearchedLocationLng ?: 0.0
                     )
-                    homeViewModel.getParkingLotsApi(currentLocation, googleMap, true)
+                    homeViewModel.getParkingLots(currentLocation, googleMap, true)
                     isSearchBarEmpty = false
                     binding.searchBar.isFocusableInTouchMode = true
                     binding.searchBar.requestFocus()
@@ -434,13 +380,14 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
 
-        googleMap.isMyLocationEnabled = true
+
         googleMap.setOnMyLocationButtonClickListener {
             if (ContextCompat.checkSelfPermission(
                     requireActivity(),
                     Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
+                googleMap.isMyLocationEnabled = true
                 fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     location?.let {
                         val latLng = LatLng(it.latitude, it.longitude)
@@ -497,7 +444,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
     override fun onDestroyView() {
         super.onDestroyView()
         apiHandler.removeCallbacks(apiRunnable)
-        homeViewModel.removeJobUpdates()
+//        homeViewModel.removeJobUpdates()
     }
 
 
