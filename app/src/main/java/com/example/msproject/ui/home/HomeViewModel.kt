@@ -7,10 +7,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.msproject.com.example.msproject.api.ApiService.LoadingState
-import com.example.msproject.com.example.msproject.api.ApiService.ParkingLotsApiService
+import com.example.msproject.com.example.msproject.api.ApiService.ParkingServiceImpl
 import com.example.msproject.api.model.ParkingLot
 import com.example.msproject.api.model.ParkingLotsResponse
-import com.example.msproject.com.example.msproject.ui.home.HomeRepository
+import com.example.msproject.com.example.msproject.api.ApiService.ParkingService
 import com.google.android.gms.maps.GoogleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -18,29 +18,20 @@ import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(parkingLotsApiService: ParkingLotsApiService) :
+class HomeViewModel  @Inject constructor(private val parkingService: ParkingService) :
     ViewModel() {
-
 
     var nearestParkingLotLiveData: MutableLiveData<ParkingLot>? = MutableLiveData<ParkingLot>()
     var parkingLotWeightsLiveData: MutableLiveData<MutableList<Pair<ParkingLot, Double>>>? =
         MutableLiveData<MutableList<Pair<ParkingLot, Double>>>()
     var durationInSecLiveData: MutableLiveData<Double>? = MutableLiveData<Double>()
     var loadingStateLiveData: MutableLiveData<LoadingState> = MutableLiveData<LoadingState>()
+    var destinationLocation: Pair<Double, Double>? = null
+    val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
 
-    private val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
-    private val scope = MainScope()
-    private var job: Job? = null
-
-
+    
     private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
         loadingStateLiveData.postValue(LoadingState.FAILURE)
-    }
-
-    var homeRepository: HomeRepository? = null
-
-    init {
-        homeRepository = HomeRepository(parkingLotsApiService)
     }
 
     fun getParkingLots(
@@ -54,7 +45,7 @@ class HomeViewModel @Inject constructor(parkingLotsApiService: ParkingLotsApiSer
         viewModelScope.launch(exceptionHandler) {
             withContext(Dispatchers.IO) {
                 try {
-                    val parkingLotsResp = homeRepository?.getParkingLots()
+                    val parkingLotsResp = parkingService?.getParkingLots()
                     if (parkingLotsResp != null) {
                         if (showProgressLoader) {
                             loadingStateLiveData.postValue(LoadingState.SUCCESS)
@@ -77,14 +68,14 @@ class HomeViewModel @Inject constructor(parkingLotsApiService: ParkingLotsApiSer
         }
     }
 
-    private fun getNumberOfUsersForParkingLots(parkingLotsResponse: ParkingLotsResponse) {
+    fun getNumberOfUsersForParkingLots(parkingLotsResponse: ParkingLotsResponse) {
         parkingLotUsersCount.clear()
 
         for (parkingLot in parkingLotsResponse.parkingLots) {
             val parkingLotName = parkingLot.parking_lot_name
             viewModelScope.launch(exceptionHandler) {
                 try {
-                    val parkingLotInfoResp = homeRepository?.getParkingLotInfo(parkingLotName)
+                    val parkingLotInfoResp = parkingService?.getParkingLotInfo(parkingLotName)
                     if (parkingLotInfoResp != null) {
                         val numberOfUsers = parkingLotInfoResp.numberOfUsers
                         parkingLotUsersCount[parkingLotName] =
@@ -106,13 +97,13 @@ class HomeViewModel @Inject constructor(parkingLotsApiService: ParkingLotsApiSer
     fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
         viewModelScope.launch(exceptionHandler) {
             withContext(Dispatchers.IO) {
-                homeRepository?.reserveParkingSpot(parkingLotName, deviceId, timeToReach)
+                parkingService.reserveParkingSpot(parkingLotName, deviceId, timeToReach)
             }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun getNearestParkingLot(
+    suspend fun getNearestParkingLot(
         apiResponse: ParkingLotsResponse,
         currentLocation: Pair<Double, Double>,
         googleMap: GoogleMap
@@ -122,6 +113,9 @@ class HomeViewModel @Inject constructor(parkingLotsApiService: ParkingLotsApiSer
         for (parkingLot in apiResponse.parkingLots) {
             val availableSpots = parkingLot.number_of_empty_parking_slots
             val numberOfUsersForLot = parkingLotUsersCount[parkingLot.parking_lot_name]?.size ?: 0
+
+            if (numberOfUsersForLot >= availableSpots) continue
+
             if (availableSpots > 0) {
                 val destinationLocation =
                     Pair(parkingLot.latitude, parkingLot.longitude)
@@ -138,41 +132,19 @@ class HomeViewModel @Inject constructor(parkingLotsApiService: ParkingLotsApiSer
             val sortedParkingLots = parkingLotWeights.sortedByDescending { it.second }
             val nearestParkingLot = sortedParkingLots.first().first
             nearestParkingLotLiveData?.postValue(nearestParkingLot)
-            val destinationLocation =
+            destinationLocation =
                 Pair(nearestParkingLot.latitude, nearestParkingLot.longitude)
-            val durationInSec = getDurationInSecs(currentLocation, destinationLocation)
+            val durationInSec = getDurationInSecs(currentLocation, destinationLocation!!)
 
             durationInSecLiveData?.postValue(durationInSec)
         }
     }
 
-
-    fun getDurationInSecs(
+    suspend fun getDurationInSecs(
         currentLocation: Pair<Double, Double>,
         destinationLocation: Pair<Double, Double>
     ): Double? {
 
-        return homeRepository?.getDistanceMatrix(currentLocation, destinationLocation)
-    }
-
-//    fun startPeriodicDeletion() {
-//        job = scope.launch {
-//            withContext(Dispatchers.IO) {
-//                while (true) {
-//                    homeRepository?.deleteExpiredDocuments()
-//                    delay(DELETE_INTERVAL_MS.toLong())
-//                }
-//            }
-//        }
-//    }
-//
-//    fun removeJobUpdates() {
-//        job?.cancel()
-//        job = null
-//    }
-
-
-    companion object {
-        private const val DELETE_INTERVAL_MS = 3000
+        return parkingService?.getDistanceMatrix(currentLocation, destinationLocation)
     }
 }

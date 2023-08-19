@@ -12,9 +12,10 @@ import okhttp3.Response
 import org.json.JSONObject
 import java.net.URL
 
-class ParkingLotsApiService {
+class ParkingServiceImpl :
+    ParkingService {
 
-    fun getParkingLots(): ParkingLotsResponse? {
+    override suspend fun getParkingLots(): ParkingLotsResponse? {
         val response: Response =
             ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET)
         var parkingLotsResponse: ParkingLotsResponse? = null
@@ -26,7 +27,7 @@ class ParkingLotsApiService {
         return parkingLotsResponse
     }
 
-    fun getParkingLotInfo(parkingLotName: String): ParkingLotInfo? {
+    override suspend fun getParkingLotInfo(parkingLotName: String): ParkingLotInfo? {
         val response: Response =
             ServiceBuilder.getBuilder(ApiConstant.PARKING_LOT_API + parkingLotName, RequestType.GET)
         var parkingLotInfoResp: ParkingLotInfo? = null
@@ -38,18 +39,7 @@ class ParkingLotsApiService {
         return parkingLotInfoResp
     }
 
-//    fun deleteExpiredDocuments() {
-//        val response: Response =
-//            ServiceBuilder.getBuilder(ApiConstant.DELETE_OLD_RECORD, RequestType.DELETE)
-//
-//        if (response.isSuccessful) {
-//            Log.i("deleteExpiredDocuments", "Deleted old data.")
-//        } else {
-//            Log.e("deleteExpiredDocuments", "Failed to delete old data.")
-//        }
-//    }
-
-    fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
+    override suspend fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
         val jsonData = JSONObject()
         jsonData.put("parkingLotName", parkingLotName)
         jsonData.put("deviceId", deviceId)
@@ -67,7 +57,7 @@ class ParkingLotsApiService {
         }
     }
 
-    fun getDistanceMatrix(
+    override suspend fun getDistanceMatrix(
         origin: Pair<Double, Double>,
         destination: Pair<Double, Double>
     ): Double {
