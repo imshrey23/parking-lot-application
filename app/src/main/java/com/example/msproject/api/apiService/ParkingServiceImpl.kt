@@ -1,10 +1,10 @@
-package com.example.msproject.com.example.msproject.api.ApiService
+package com.example.msproject.api.apiService
 
 import android.util.Log
 import com.example.msproject.BuildConfig
-import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.example.msproject.api.model.ParkingLotsResponse
 import com.example.msproject.api.model.distance.DistanceMatrixResponse
+import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -15,6 +15,7 @@ import java.net.URL
 class ParkingServiceImpl :
     ParkingService {
 
+    //TODO: failed conditions for all function
     override suspend fun getParkingLots(): ParkingLotsResponse? {
         val response: Response =
             ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET)
@@ -24,6 +25,7 @@ class ParkingServiceImpl :
             val responseString = response.body?.string()
             parkingLotsResponse = Gson().fromJson(responseString, ParkingLotsResponse::class.java)
         }
+
         return parkingLotsResponse
     }
 
@@ -57,7 +59,7 @@ class ParkingServiceImpl :
         }
     }
 
-    override suspend fun getDistanceMatrix(
+    override suspend fun getETA(
         origin: Pair<Double, Double>,
         destination: Pair<Double, Double>
     ): Double {
@@ -71,6 +73,7 @@ class ParkingServiceImpl :
         val response = URL(url).readText()
         val distanceMatrixResponse = Gson().fromJson(response, DistanceMatrixResponse::class.java)
 
+        //TODO: add condition for distanceMatrix response is null
         if (distanceMatrixResponse.rows.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements[0].duration != null
@@ -81,8 +84,6 @@ class ParkingServiceImpl :
             throw Exception("Invalid response format or missing data.")
         }
     }
-
-
 }
 
 

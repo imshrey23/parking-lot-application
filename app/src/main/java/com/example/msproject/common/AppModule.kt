@@ -1,7 +1,7 @@
-package com.example.msproject.com.example.msproject.common
+package com.example.msproject.common
 
-import com.example.msproject.com.example.msproject.api.ApiService.ParkingService
-import com.example.msproject.com.example.msproject.api.ApiService.ParkingServiceImpl
+import com.example.msproject.api.apiService.ParkingService
+import com.example.msproject.api.apiService.ParkingServiceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

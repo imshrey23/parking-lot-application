@@ -6,15 +6,15 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.msproject.com.example.msproject.api.ApiService.LoadingState
-import com.example.msproject.com.example.msproject.api.ApiService.ParkingServiceImpl
+import com.example.msproject.api.apiService.LoadingState
+import com.example.msproject.api.apiService.ParkingService
 import com.example.msproject.api.model.ParkingLot
 import com.example.msproject.api.model.ParkingLotsResponse
-import com.example.msproject.com.example.msproject.api.ApiService.ParkingService
 import com.google.android.gms.maps.GoogleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import java.io.IOException
+import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,21 +22,19 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
     ViewModel() {
 
     var nearestParkingLotLiveData: MutableLiveData<ParkingLot>? = MutableLiveData<ParkingLot>()
-    var parkingLotWeightsLiveData: MutableLiveData<MutableList<Pair<ParkingLot, Double>>>? =
-        MutableLiveData<MutableList<Pair<ParkingLot, Double>>>()
+    var parkingLotWeightsLiveData: MutableLiveData<MutableList<Pair<ParkingLot, Double>>>? = MutableLiveData<MutableList<Pair<ParkingLot, Double>>>()
     var durationInSecLiveData: MutableLiveData<Double>? = MutableLiveData<Double>()
     var loadingStateLiveData: MutableLiveData<LoadingState> = MutableLiveData<LoadingState>()
-    var destinationLocation: Pair<Double, Double>? = null
-    val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
+    private val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
 
+    private var destinationLocation: Pair<Double, Double>? = Pair(0.0 , 0.0)
     
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+    private val exceptionHandler = CoroutineExceptionHandler { _, _ ->
         loadingStateLiveData.postValue(LoadingState.FAILURE)
     }
 
     fun getParkingLots(
         currentLocation: Pair<Double, Double>,
-        googleMap: GoogleMap,
         showProgressLoader: Boolean
     ) {
         if (showProgressLoader) {
@@ -51,24 +49,23 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
                             loadingStateLiveData.postValue(LoadingState.SUCCESS)
                         }
                         getNumberOfUsersForParkingLots(parkingLotsResp)
-                        getNearestParkingLot(parkingLotsResp, currentLocation, googleMap)
+                        getNearestParkingLot(parkingLotsResp, currentLocation)
                     } else {
-                        // Handle error calling API
-                        println("Error calling API.")
                         if (showProgressLoader) {
                             loadingStateLiveData.postValue(LoadingState.FAILURE)
                         }
                     }
-                } catch (networkError: IOException) {
+                } catch (exception: Exception) {
                     if (showProgressLoader) {
                         loadingStateLiveData.postValue(LoadingState.FAILURE)
                     }
+                    Log.e("getParkingLots" , "$exception")
                 }
             }
         }
     }
 
-    fun getNumberOfUsersForParkingLots(parkingLotsResponse: ParkingLotsResponse) {
+    private fun getNumberOfUsersForParkingLots(parkingLotsResponse: ParkingLotsResponse) {
         parkingLotUsersCount.clear()
 
         for (parkingLot in parkingLotsResponse.parkingLots) {
@@ -84,11 +81,9 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
                                 mutableSetOf()
                             ) + numberOfUsers) as MutableSet<String>
                     }
-                } catch (networkError: IOException) {
-                    Log.e(
-                        "getNumberOfUsersForParkingLots",
-                        "Request to get number of users for parking lots failed"
-                    )
+                } catch (exception: Exception) {
+
+                    Log.e("getNumberOfUsersForParkingLots", "$exception")
                 }
             }
         }
@@ -97,7 +92,11 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
     fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
         viewModelScope.launch(exceptionHandler) {
             withContext(Dispatchers.IO) {
-                parkingService.reserveParkingSpot(parkingLotName, deviceId, timeToReach)
+                try {
+                    parkingService.reserveParkingSpot(parkingLotName, deviceId, timeToReach)
+                }catch (exception : Exception){
+                    Log.e("reserveParkingSpot" , "$exception")
+                }
             }
         }
     }
@@ -105,8 +104,7 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
     @RequiresApi(Build.VERSION_CODES.N)
     suspend fun getNearestParkingLot(
         apiResponse: ParkingLotsResponse,
-        currentLocation: Pair<Double, Double>,
-        googleMap: GoogleMap
+        currentLocation: Pair<Double, Double>
     ) {
         val parkingLotWeights = mutableListOf<Pair<ParkingLot, Double>>()
 
@@ -119,7 +117,7 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
             if (availableSpots > 0) {
                 val destinationLocation =
                     Pair(parkingLot.latitude, parkingLot.longitude)
-                val duration = getDurationInSecs(currentLocation, destinationLocation)
+                val duration = parkingService?.getETA(currentLocation, destinationLocation)
 
                 if (duration != null) {
                     val weight = availableSpots.toDouble() / (duration)
@@ -134,17 +132,17 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
             nearestParkingLotLiveData?.postValue(nearestParkingLot)
             destinationLocation =
                 Pair(nearestParkingLot.latitude, nearestParkingLot.longitude)
-            val durationInSec = getDurationInSecs(currentLocation, destinationLocation!!)
+            val durationInSec = parkingService?.getETA(currentLocation, destinationLocation!!)
 
             durationInSecLiveData?.postValue(durationInSec)
         }
     }
 
-    suspend fun getDurationInSecs(
-        currentLocation: Pair<Double, Double>,
-        destinationLocation: Pair<Double, Double>
-    ): Double? {
-
-        return parkingService?.getDistanceMatrix(currentLocation, destinationLocation)
-    }
+//    private suspend fun getDurationInSecs(
+//        currentLocation: Pair<Double, Double>,
+//        destinationLocation: Pair<Double, Double>
+//    ): Double? {
+//
+//        return parkingService?.getETA(currentLocation, destinationLocation)
+//    }
 }

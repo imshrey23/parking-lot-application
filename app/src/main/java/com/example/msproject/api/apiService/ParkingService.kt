@@ -1,7 +1,7 @@
-package com.example.msproject.com.example.msproject.api.ApiService
+package com.example.msproject.api.apiService
 
-import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.example.msproject.api.model.ParkingLotsResponse
+import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 
 interface ParkingService  {
     suspend fun getParkingLots(): ParkingLotsResponse?
@@ -10,7 +10,7 @@ interface ParkingService  {
 
     suspend fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long)
 
-    suspend fun getDistanceMatrix(
+    suspend fun getETA(
         currentLocation: Pair<Double, Double>,
         destinationLocation: Pair<Double, Double>
     ): Double?

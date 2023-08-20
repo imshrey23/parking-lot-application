@@ -15,12 +15,6 @@
         tools:context="ui.home.HomeMapFragment"
         android:id="@+id/main">
 
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone" />
 
         <TextView
             android:id="@+id/progress_text"
@@ -139,6 +133,15 @@
                 </RelativeLayout>
             </LinearLayout>
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:text="Loading parking lot based on current location"/>
 
 
     </com.google.android.material.circularreveal.CircularRevealFrameLayout>

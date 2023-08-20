@@ -1,4 +1,4 @@
-package com.example.msproject.com.example.msproject.api.ApiService
+package com.example.msproject.api.apiService
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -13,7 +13,6 @@ object ServiceBuilder {
         when (methodType) {
             RequestType.GET -> request.get()
             RequestType.POST -> body?.let { request.post(it) }
-//            RequestType.DELETE -> request.delete(body)
         }
 
         return okHttpClient.newCall(request.build()).execute()
