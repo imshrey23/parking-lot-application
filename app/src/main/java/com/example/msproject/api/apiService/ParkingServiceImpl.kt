@@ -1,10 +1,10 @@
-package com.example.msproject.com.example.msproject.api.ApiService
+package com.example.msproject.api.apiService
 
 import android.util.Log
 import com.example.msproject.BuildConfig
-import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.example.msproject.api.model.ParkingLotsResponse
 import com.example.msproject.api.model.distance.DistanceMatrixResponse
+import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -12,9 +12,11 @@ import okhttp3.Response
 import org.json.JSONObject
 import java.net.URL
 
-class ParkingLotsApiService {
+class ParkingServiceImpl :
+    ParkingService {
 
-    fun getParkingLots(): ParkingLotsResponse? {
+    //TODO: failed conditions for all function
+    override suspend fun getParkingLots(): ParkingLotsResponse? {
         val response: Response =
             ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET)
         var parkingLotsResponse: ParkingLotsResponse? = null
@@ -23,10 +25,11 @@ class ParkingLotsApiService {
             val responseString = response.body?.string()
             parkingLotsResponse = Gson().fromJson(responseString, ParkingLotsResponse::class.java)
         }
+
         return parkingLotsResponse
     }
 
-    fun getParkingLotInfo(parkingLotName: String): ParkingLotInfo? {
+    override suspend fun getParkingLotInfo(parkingLotName: String): ParkingLotInfo? {
         val response: Response =
             ServiceBuilder.getBuilder(ApiConstant.PARKING_LOT_API + parkingLotName, RequestType.GET)
         var parkingLotInfoResp: ParkingLotInfo? = null
@@ -38,18 +41,7 @@ class ParkingLotsApiService {
         return parkingLotInfoResp
     }
 
-//    fun deleteExpiredDocuments() {
-//        val response: Response =
-//            ServiceBuilder.getBuilder(ApiConstant.DELETE_OLD_RECORD, RequestType.DELETE)
-//
-//        if (response.isSuccessful) {
-//            Log.i("deleteExpiredDocuments", "Deleted old data.")
-//        } else {
-//            Log.e("deleteExpiredDocuments", "Failed to delete old data.")
-//        }
-//    }
-
-    fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
+    override suspend fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
         val jsonData = JSONObject()
         jsonData.put("parkingLotName", parkingLotName)
         jsonData.put("deviceId", deviceId)
@@ -67,7 +59,7 @@ class ParkingLotsApiService {
         }
     }
 
-    fun getDistanceMatrix(
+    override suspend fun getETA(
         origin: Pair<Double, Double>,
         destination: Pair<Double, Double>
     ): Double {
@@ -81,6 +73,7 @@ class ParkingLotsApiService {
         val response = URL(url).readText()
         val distanceMatrixResponse = Gson().fromJson(response, DistanceMatrixResponse::class.java)
 
+        //TODO: add condition for distanceMatrix response is null
         if (distanceMatrixResponse.rows.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements[0].duration != null
@@ -91,8 +84,6 @@ class ParkingLotsApiService {
             throw Exception("Invalid response format or missing data.")
         }
     }
-
-
 }
 
 

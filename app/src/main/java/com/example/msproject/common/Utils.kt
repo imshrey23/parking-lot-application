@@ -4,11 +4,9 @@ import android.content.ContentResolver
 import android.content.pm.PackageManager
 import android.provider.Settings
 import com.example.msproject.BuildConfig
-import com.example.msproject.api.model.distance.DistanceMatrixResponse
 import com.google.cloud.translate.Translate
 import com.google.cloud.translate.TranslateOptions
 import com.google.cloud.translate.Translation
-import com.google.gson.Gson
 
 object CommonUtils {
 
