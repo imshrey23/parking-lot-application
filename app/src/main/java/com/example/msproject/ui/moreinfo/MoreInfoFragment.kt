@@ -22,8 +22,11 @@ class MoreInfoFragment : Fragment(R.layout.more_info_fragment) {
         savedInstanceState: Bundle?
     ): View {
         binding = MoreInfoFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         var homeViewModel = ViewModelProviders.of(requireActivity())[HomeViewModel::class.java]
         homeViewModel.nearestParkingLotLiveData?.observe(viewLifecycleOwner, {
 
@@ -50,6 +53,5 @@ class MoreInfoFragment : Fragment(R.layout.more_info_fragment) {
 
             binding.timestampTextView.text = it.timestamp
         })
-        return binding.root
     }
 }

@@ -64,14 +64,19 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
 
         binding = HomeMapFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         homeViewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
-        homeViewModel.loadingStateLiveData.observe(requireActivity(), {
+        homeViewModel.loadingStateLiveData.observe(requireActivity(),  {
             when (it) {
                 LoadingState.LOADING -> {
-                    showProgressDialog("Loading nearest parking lot...")
+                    showProgressDialog(R.string.progress_bar_text.toString())
                 }
                 LoadingState.SUCCESS -> {
                     hideProgressDialog()
@@ -102,6 +107,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 PERMISSIONS_REQUEST_LOCATION
             )
         } else {
+            getCurrentLocationAndParkingLots(true)
             apiHandler.post(apiRunnable)
         }
         mapFragment =
@@ -135,7 +141,9 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             binding.searchBar.isFocusable = false
             isSearchBarEmpty = true
             showAlert = true
-            getCurrentLocationAndSendToAPI(true)
+            lastSearchedLocationLat = null
+            lastSearchedLocationLng = null
+            getCurrentLocationAndParkingLots(true)
         }
 
         binding.searchBar.setOnClickListener {
@@ -166,11 +174,10 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 showPopupMessage(getString(R.string.parking_full))
             }
         })
-        return binding.root
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun getCurrentLocationAndSendToAPI(showLoader: Boolean) {
+    fun getCurrentLocationAndParkingLots(showLoader: Boolean) {
         if (ActivityCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -220,10 +227,10 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 homeViewModel.getParkingLots(currentLocation, false)
 
             } else if (isSearchBarEmpty) {
-                isSearchBarEmpty = false
+//                isSearchBarEmpty = false
                 lastSearchedLocationLat = null
                 lastSearchedLocationLng = null
-                getCurrentLocationAndSendToAPI(false)
+                getCurrentLocationAndParkingLots(false)
             }
             apiHandler.postDelayed(this, 30000)
         }
@@ -307,10 +314,9 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
             if (it > MIN_RADIUS_CHECK && showAlert) {
                 val builder = AlertDialog.Builder(requireActivity())
-                //TODO: add as res
-                builder.setTitle("Important Message")
-                builder.setMessage("Please check when you are 15 mins away from the destination in order to get reliable data.")
-                builder.setPositiveButton("OK") { dialog, _ ->
+                builder.setTitle(R.string.min_radius_alert_title)
+                builder.setMessage(R.string.min_radius_alert_text)
+                builder.setPositiveButton(R.string.min_radius_alert_ok) { dialog, _ ->
                     dialog.dismiss()
                 }
                 val dialog: AlertDialog = builder.create()
@@ -324,17 +330,13 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
     //TODO: use progressbar
     private fun showProgressDialog(message: String) {
-        progressDialog = ProgressDialog(requireActivity())
-        progressDialog.setMessage(message)
-        progressDialog.setCancelable(false)
-        progressDialog.show()
+        binding.progressBarLayout.visibility = View.VISIBLE
     }
 
     private fun hideProgressDialog() {
-        if (::progressDialog.isInitialized && progressDialog.isShowing) {
-            progressDialog.dismiss()
-        }
+        binding.progressBarLayout.visibility = View.GONE
     }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -406,7 +408,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSIONS_REQUEST_LOCATION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getCurrentLocationAndSendToAPI(true)
+                getCurrentLocationAndParkingLots(true)
                 apiHandler.post(apiRunnable)
             } else {
                 Toast.makeText(
@@ -423,7 +425,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         val builder = AlertDialog.Builder(requireActivity())
         builder.setMessage(message)
             .setCancelable(false)
-            .setPositiveButton("OK") { dialog, _ ->
+            .setPositiveButton(R.string.min_radius_alert_ok) { dialog, _ ->
                 dialog.dismiss()
             }
         val alert = builder.create()

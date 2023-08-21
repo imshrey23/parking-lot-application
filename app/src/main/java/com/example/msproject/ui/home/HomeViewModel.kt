@@ -40,6 +40,7 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
         if (showProgressLoader) {
             loadingStateLiveData.postValue(LoadingState.LOADING)
         }
+        Log.i("current location" , "$currentLocation")
         viewModelScope.launch(exceptionHandler) {
             withContext(Dispatchers.IO) {
                 try {
@@ -71,19 +72,21 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
         for (parkingLot in parkingLotsResponse.parkingLots) {
             val parkingLotName = parkingLot.parking_lot_name
             viewModelScope.launch(exceptionHandler) {
-                try {
-                    val parkingLotInfoResp = parkingService?.getParkingLotInfo(parkingLotName)
-                    if (parkingLotInfoResp != null) {
-                        val numberOfUsers = parkingLotInfoResp.numberOfUsers
-                        parkingLotUsersCount[parkingLotName] =
-                            (parkingLotUsersCount.getOrDefault(
-                                parkingLotName,
-                                mutableSetOf()
-                            ) + numberOfUsers) as MutableSet<String>
-                    }
-                } catch (exception: Exception) {
+                withContext(Dispatchers.IO) {
+                    try {
+                        val parkingLotInfoResp = parkingService?.getParkingLotInfo(parkingLotName)
+                        if (parkingLotInfoResp != null) {
+                            val numberOfUsers = parkingLotInfoResp.numberOfUsers
+                            parkingLotUsersCount[parkingLotName] =
+                                (parkingLotUsersCount.getOrDefault(
+                                    parkingLotName,
+                                    mutableSetOf()
+                                ) + numberOfUsers) as MutableSet<String>
+                        }
+                    } catch (exception: Exception) {
 
-                    Log.e("getNumberOfUsersForParkingLots", "$exception")
+                        Log.e("getNumberOfUsersForParkingLots", "$exception")
+                    }
                 }
             }
         }
@@ -92,20 +95,18 @@ class HomeViewModel  @Inject constructor(private val parkingService: ParkingServ
     fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
         viewModelScope.launch(exceptionHandler) {
             withContext(Dispatchers.IO) {
-                try {
-                    parkingService.reserveParkingSpot(parkingLotName, deviceId, timeToReach)
-                }catch (exception : Exception){
-                    Log.e("reserveParkingSpot" , "$exception")
-                }
+                parkingService.reserveParkingSpot(parkingLotName, deviceId, timeToReach)
             }
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     suspend fun getNearestParkingLot(
         apiResponse: ParkingLotsResponse,
         currentLocation: Pair<Double, Double>
     ) {
+        Log.i("current location - getNearest" , "$currentLocation")
         val parkingLotWeights = mutableListOf<Pair<ParkingLot, Double>>()
 
         for (parkingLot in apiResponse.parkingLots) {
