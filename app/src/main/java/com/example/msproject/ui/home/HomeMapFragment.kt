@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +19,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.msproject.BuildConfig
@@ -59,7 +61,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
     private var isSearchBarEmpty: Boolean = true
     private var showAlert: Boolean = true
 
-    //TODO : Add function to check permissions for location
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -68,6 +69,11 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
         binding = HomeMapFragmentBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onStart() {
+        super.onStart()
+        requestForLocationPermission()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -95,21 +101,20 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-        if (ContextCompat.checkSelfPermission(
-                requireActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                PERMISSIONS_REQUEST_LOCATION
-            )
-        } else {
-            getCurrentLocationAndParkingLots(true)
-            apiHandler.post(apiRunnable)
-        }
+//        if (checkSelfPermission(
+//                requireActivity(),
+//                Manifest.permission.ACCESS_FINE_LOCATION
+//            )
+//            != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            requestPermissions(
+//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+//                PERMISSIONS_REQUEST_LOCATION
+//            )
+//        } else {
+//            getCurrentLocationAndParkingLots(true)
+//            apiHandler.post(apiRunnable)
+//        }
         mapFragment =
             childFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
@@ -127,11 +132,26 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         binding.fabNavigation.setOnClickListener {
             binding.fabNavigation.bringToFront()
             openGoogleMaps()
-            homeViewModel.reserveParkingSpot(
-                parkingLotName,
-                CommonUtils.getDeviceId(requireActivity().contentResolver),
-                timeToReach
-            )
+            if (ActivityCompat.checkSelfPermission(
+                    requireActivity(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    requireActivity(),
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                fusedLocationClient.lastLocation
+                    .addOnSuccessListener(requireActivity()) { location ->
+                        location?.let {
+                            val currentLocation = Pair(it.latitude, it.longitude)
+                            homeViewModel.reserveParkingSpot(
+                                parkingLotName,
+                                CommonUtils.getDeviceId(requireActivity().contentResolver),
+                                currentLocation
+                            )
+                        }
+                    }
+            }
         }
 
         binding.tilLocation.setEndIconOnClickListener {
@@ -176,32 +196,80 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         })
     }
 
+    private fun requestForLocationPermission(){
+        when {
+            checkSelfPermission(
+                requireActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                getCurrentLocationAndParkingLots(true)
+                apiHandler.post(apiRunnable)
+            }
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) ->{
+                AlertDialog.Builder(requireActivity())
+                    .setTitle("Location Permission Needed")
+                    .setMessage("This application needs the location permission to find the most suitable parking lot.")
+                    .setPositiveButton("Settings") { dialog, which ->
+                        dialog.dismiss()
+                        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", requireActivity().packageName, null)
+                        })
+
+                    }
+                    .setNegativeButton("Cancel") { dialog, which ->
+                        dialog.dismiss()
+                    }
+                    .create()
+                    .show()
+            }
+            else -> {
+                requestPermissions(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ),
+                    PERMISSIONS_REQUEST_LOCATION
+                )
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            PERMISSIONS_REQUEST_LOCATION -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() &&
+                            grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    getCurrentLocationAndParkingLots(true)
+                    apiHandler.post(apiRunnable)
+                } else {
+                    Toast.makeText(
+                        requireActivity(),
+                        "Permission denied to access location",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                return
+            }
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.N)
     fun getCurrentLocationAndParkingLots(showLoader: Boolean) {
         if (ActivityCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
-            AlertDialog.Builder(requireActivity())
-                .setTitle("Location Permission Needed")
-                .setMessage("This application needs the location permission to find the most suitable parking lot.")
-                .setPositiveButton("Allow") { dialog, which ->
-                    ActivityCompat.requestPermissions(
-                        requireActivity(),
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        PERMISSIONS_REQUEST_LOCATION
-                    )
-                }
-                .setNegativeButton("Cancel") { dialog, which ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
-        } else {
             fusedLocationClient.lastLocation
                 .addOnSuccessListener(requireActivity()) { location ->
                     location?.let {
@@ -212,6 +280,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
                 .addOnFailureListener(requireActivity()) { e ->
                     Log.e("Location Error", e.message ?: "Unknown Error")
                 }
+            return
         }
     }
 
@@ -328,7 +397,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         })
     }
 
-    //TODO: use progressbar
     private fun showProgressDialog(message: String) {
         binding.progressBarLayout.visibility = View.VISIBLE
     }
@@ -375,49 +443,26 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
         this.googleMap = googleMap
 
         googleMap.setOnMyLocationButtonClickListener {
-            if (ContextCompat.checkSelfPermission(
-                    requireActivity(),
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                googleMap.isMyLocationEnabled = true
-                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                    location?.let {
-                        val latLng = LatLng(it.latitude, it.longitude)
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+
+                if (checkSelfPermission(
+                        requireActivity(),
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        requireActivity(),
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    googleMap.isMyLocationEnabled = true
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        location?.let {
+                            val latLng = LatLng(it.latitude, it.longitude)
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                        }
                     }
+
                 }
-            } else {
-                ActivityCompat.requestPermissions(
-                    requireActivity(),
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    LOCATION_PERMISSION_REQUEST_CODE
-                )
-            }
+
             true
-        }
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSIONS_REQUEST_LOCATION) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getCurrentLocationAndParkingLots(true)
-                apiHandler.post(apiRunnable)
-            } else {
-                Toast.makeText(
-                    requireActivity(),
-                    "Permission denied to access location",
-                    Toast.LENGTH_SHORT
-                )
-                    .show()
-            }
         }
     }
 
@@ -441,7 +486,6 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
     companion object {
         const val PERMISSIONS_REQUEST_LOCATION = 100
         const val PLACE_AUTOCOMPLETE_REQUEST_CODE = 3
-        const val LOCATION_PERMISSION_REQUEST_CODE = 1
         const val MIN_RADIUS_CHECK = 9000.0
 
     }

@@ -15,7 +15,6 @@ import java.net.URL
 class ParkingServiceImpl :
     ParkingService {
 
-    //TODO: failed conditions for all function
     override suspend fun getParkingLots(): ParkingLotsResponse? {
         val response: Response =
             ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET)
@@ -78,7 +77,6 @@ class ParkingServiceImpl :
         val distanceMatrixResponse = Gson().fromJson(response, DistanceMatrixResponse::class.java)
             ?: throw Exception("Failed to parse DistanceMatrixResponse.")
 
-        //TODO: add condition for distanceMatrix response is null
         if (distanceMatrixResponse.rows.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements[0].duration != null
