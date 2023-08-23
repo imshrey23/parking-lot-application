@@ -151,7 +151,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `Given an exception when getParkingLotsApi is called, should set loadingStateLiveData to FAILURE`() = runBlocking {
+    fun `Given an exception when getParkingLots is called, should set loadingStateLiveData to FAILURE`() = runBlocking {
         val location = Pair(0.0, 0.0)
         val showProgressLoader = true
 
