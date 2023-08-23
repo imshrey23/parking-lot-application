@@ -1,5 +1,6 @@
 package com.example.msproject
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.msproject.api.apiService.LoadingState
 import com.example.msproject.api.apiService.ParkingService
 import com.example.msproject.api.model.ParkingLot
@@ -13,21 +14,26 @@ import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.*
+import org.junit.rules.TestRule
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
-    private var parkingService: ParkingService = mockk()
+    private var parkingService: ParkingService = mockk(relaxed = true)
     private lateinit var viewModel: HomeViewModel
-    private val dispatcher: TestDispatcher = StandardTestDispatcher()
+    private val dispatcher = TestCoroutineDispatcher()
     private lateinit var loadingState: MutableList<LoadingState>
     private val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
 
     @get:Rule
-    val rule = MainDispatcherRule()
+    val rule = MainDispatcherRule(dispatcher)
+
+    @get:Rule
+    val testRule: TestRule = InstantTaskExecutorRule()
 
     @Before
     fun setUp() {
@@ -78,6 +84,7 @@ class HomeViewModelTest {
         } returns response
 
         viewModel.getParkingLots(location, showProgressLoader)
+        dispatcher.advanceUntilIdle()
 
         Assert.assertEquals(LoadingState.LOADING, viewModel.loadingStateLiveData.value)
         coVerify {
@@ -108,6 +115,7 @@ class HomeViewModelTest {
             parkingService.getParkingLotInfo(response.parkingLots[0].parking_lot_name)
         }
 
+        dispatcher.advanceUntilIdle()
         Assert.assertNotNull(parkingLotUsersCount)
         Assert.assertNotNull(parkingLotUsersCount["Lot1"])
         Assert.assertEquals(
@@ -164,6 +172,8 @@ class HomeViewModelTest {
         coVerify {
             parkingService.getParkingLots()
         }
+
+        dispatcher.advanceUntilIdle()
         Assert.assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
     }
 
