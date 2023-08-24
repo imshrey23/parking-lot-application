@@ -1,6 +1,5 @@
 package com.example.msproject.api.apiService
 
-import com.google.gson.JsonObject
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

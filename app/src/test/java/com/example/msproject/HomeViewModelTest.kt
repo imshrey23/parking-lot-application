@@ -7,16 +7,15 @@ import com.example.msproject.api.model.ParkingLot
 import com.example.msproject.api.model.ParkingLotsResponse
 import com.example.msproject.com.example.msproject.model.ParkingLotInfo
 import com.example.msproject.ui.home.HomeViewModel
-import com.google.android.gms.maps.GoogleMap
-import io.mockk.*
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestDispatcher
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.*
 import org.junit.rules.TestRule
 
@@ -25,12 +24,12 @@ class HomeViewModelTest {
 
     private var parkingService: ParkingService = mockk(relaxed = true)
     private lateinit var viewModel: HomeViewModel
-    private val dispatcher = TestCoroutineDispatcher()
+//    private val dispatcher = TestCoroutineDispatcher()
     private lateinit var loadingState: MutableList<LoadingState>
     private val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
 
     @get:Rule
-    val rule = MainDispatcherRule(dispatcher)
+    val rule = MainDispatcherRule()
 
     @get:Rule
     val testRule: TestRule = InstantTaskExecutorRule()
@@ -51,7 +50,7 @@ class HomeViewModelTest {
 
 
     @Test
-    fun `Given showProgressLoader is true when getParkingLots is called and fails, should return FAILURE loading state`() {
+    fun `Given showProgressLoader is true when getParkingLots is called and fails, should return FAILURE loading state`()= runBlocking {
 
         val location = Pair(0.0, 0.0)
         val showProgressLoader = true
@@ -69,7 +68,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `Given showProgressLoader is true when getParkingLots is called and succeeds, should return list of parking lots`() {
+    fun `Given showProgressLoader is true when getParkingLots is called and succeeds, should return list of parking lots`()= runBlocking {
 
         val location = Pair(0.0, 0.0)
         val showProgressLoader = true
@@ -84,7 +83,7 @@ class HomeViewModelTest {
         } returns response
 
         viewModel.getParkingLots(location, showProgressLoader)
-        dispatcher.advanceUntilIdle()
+
 
         Assert.assertEquals(LoadingState.LOADING, viewModel.loadingStateLiveData.value)
         coVerify {
@@ -96,7 +95,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `Given showProgressLoader is true when getParkingLotInfo is called and succeeds, should return list of parking lots info`() {
+    fun `Given showProgressLoader is true when getParkingLotInfo is called and succeeds, should return list of parking lots info`()= runBlocking {
         val response = ParkingLotsResponse(
             listOf(
                 ParkingLot(0.0, 0.0, "https://detectionlog.s3.amazonaws.com/original_images/2023-05-14T13:42:24.838578_uu8ca0j.jpg", 10, "$10", "Lot1", "1hr", "timestamp", 20)
@@ -115,7 +114,6 @@ class HomeViewModelTest {
             parkingService.getParkingLotInfo(response.parkingLots[0].parking_lot_name)
         }
 
-        dispatcher.advanceUntilIdle()
         Assert.assertNotNull(parkingLotUsersCount)
         Assert.assertNotNull(parkingLotUsersCount["Lot1"])
         Assert.assertEquals(
@@ -172,8 +170,6 @@ class HomeViewModelTest {
         coVerify {
             parkingService.getParkingLots()
         }
-
-        dispatcher.advanceUntilIdle()
         Assert.assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
     }
 
