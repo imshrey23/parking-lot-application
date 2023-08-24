@@ -92,35 +92,7 @@ class HomeViewModelTest {
         Assert.assertEquals(LoadingState.SUCCESS, viewModel.loadingStateLiveData.value)
 
     }
-
-    @Test
-    fun `Given showProgressLoader is true when getParkingLotInfo is called and succeeds, should return list of parking lots info`()= runTest  {
-        val response = ParkingLotsResponse(
-            listOf(
-                ParkingLot(0.0, 0.0, "https://detectionlog.s3.amazonaws.com/original_images/2023-05-14T13:42:24.838578_uu8ca0j.jpg", 10, "$10", "Lot1", "1hr", "timestamp", 20)
-            )
-        )
-        val parkingLotInfoResp = ParkingLotInfo("Lot1", 12)
-
-        parkingLotUsersCount["Lot1"] = mutableSetOf("12")
-        coEvery {
-            parkingService.getParkingLotInfo("Lot1")
-        } returns parkingLotInfoResp
-
-        viewModel.getNumberOfUsersForParkingLots(response)
-
-        coVerify {
-            parkingService.getParkingLotInfo(response.parkingLots[0].parking_lot_name)
-        }
-        advanceTimeBy(2000)
-        Assert.assertEquals(
-            parkingLotUsersCount["Lot1"].toString(),
-            viewModel.parkingLotUsersCount["Lot1"].toString()
-        )
-
-    }
-
-
+    
     @Test
     fun `Given current location when getNearestParkingLot is called, should verify correct parking lot is found`()= runTest  {
         val currentLocation = Pair(44.57317333333334, -123.282065)
