@@ -24,15 +24,11 @@ class HomeViewModelTest {
 
     private var parkingService: ParkingService = mockk(relaxed = true)
     private lateinit var viewModel: HomeViewModel
-//    private val dispatcher = TestCoroutineDispatcher()
     private lateinit var loadingState: MutableList<LoadingState>
     private val parkingLotUsersCount: MutableMap<String, MutableSet<String>> = mutableMapOf()
 
     @get:Rule
     val rule = MainDispatcherRule()
-
-    @get:Rule
-    val testRule: TestRule = InstantTaskExecutorRule()
 
     @Before
     fun setUp() {
@@ -67,6 +63,7 @@ class HomeViewModelTest {
         Assert.assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
     }
 
+
     @Test
     fun `Given showProgressLoader is true when getParkingLots is called and succeeds, should return list of parking lots`()= runBlocking {
 
@@ -84,13 +81,12 @@ class HomeViewModelTest {
 
         viewModel.getParkingLots(location, showProgressLoader)
 
-
         Assert.assertEquals(LoadingState.LOADING, viewModel.loadingStateLiveData.value)
         coVerify {
             parkingService.getParkingLots()
         }
 
-        Assert.assertEquals(LoadingState.SUCCESS, loadingState.last())
+        Assert.assertEquals(LoadingState.SUCCESS, viewModel.loadingStateLiveData.value)
 
     }
 
