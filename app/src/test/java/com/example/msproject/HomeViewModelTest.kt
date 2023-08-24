@@ -11,8 +11,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
+import junit.framework.Assert.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
@@ -63,7 +62,7 @@ class HomeViewModelTest {
             parkingService.getParkingLots()
         }
         advanceTimeBy(2000)
-        Assert.assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
+        assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
     }
 
 
@@ -89,10 +88,37 @@ class HomeViewModelTest {
             parkingService.getParkingLots()
         }
         advanceTimeBy(2000)
-        Assert.assertEquals(LoadingState.SUCCESS, viewModel.loadingStateLiveData.value)
+        assertEquals(LoadingState.SUCCESS, viewModel.loadingStateLiveData.value)
 
     }
-    
+
+    @Test
+    fun `Given showProgressLoader is true when getParkingLotInfo is called and succeeds, should return list of parking lots info`()= runTest  {
+        val response = ParkingLotsResponse(
+            listOf(
+                ParkingLot(0.0, 0.0, "https://detectionlog.s3.amazonaws.com/original_images/2023-05-14T13:42:24.838578_uu8ca0j.jpg", 10, "$10", "Lot1", "1hr", "timestamp", 20)
+            )
+        )
+        val parkingLotInfoResp = ParkingLotInfo("Lot1", 12)
+
+        parkingLotUsersCount["Lot1"] = mutableSetOf("12")
+        coEvery {
+            parkingService.getParkingLotInfo("Lot1")
+        } returns parkingLotInfoResp
+
+        viewModel.getNumberOfUsersForParkingLots(response)
+
+        coVerify {
+            parkingService.getParkingLotInfo(response.parkingLots[0].parking_lot_name)
+        }
+        advanceTimeBy(2000)
+        assertEquals(
+            parkingLotUsersCount["Lot1"].toString(),
+            viewModel.parkingLotUsersCount["Lot1"].toString()
+        )
+
+    }
+
     @Test
     fun `Given current location when getNearestParkingLot is called, should verify correct parking lot is found`()= runTest  {
         val currentLocation = Pair(44.57317333333334, -123.282065)
@@ -141,7 +167,7 @@ class HomeViewModelTest {
             parkingService.getParkingLots()
         }
         advanceTimeBy(2000)
-        Assert.assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
+        assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
     }
 
 
@@ -164,7 +190,7 @@ class HomeViewModelTest {
         }
         advanceTimeBy(2000)
         // Assert that there was no change to the parkingLotUsersCount
-        Assert.assertTrue(viewModel.parkingLotUsersCount.isEmpty())
+        assertTrue(viewModel.parkingLotUsersCount.isEmpty())
     }
 
     @Test
@@ -180,7 +206,7 @@ class HomeViewModelTest {
             parkingService.getETA(any(), any())
         }
         advanceTimeBy(2000)
-        Assert.assertNull(viewModel.nearestParkingLotLiveData?.value)
+        assertNull(viewModel.nearestParkingLotLiveData?.value)
         assertTrue(viewModel.parkingLotWeightsLiveData?.value.isNullOrEmpty())
     }
 
