@@ -11,14 +11,12 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import junit.framework.Assert.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.*
-import org.junit.rules.TestRule
+import org.junit.Assert.*
+
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
@@ -61,7 +59,7 @@ class HomeViewModelTest {
         coVerify {
             parkingService.getParkingLots()
         }
-        advanceTimeBy(2000)
+        advanceUntilIdle()
         assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
     }
 
@@ -87,7 +85,7 @@ class HomeViewModelTest {
         coVerify {
             parkingService.getParkingLots()
         }
-        advanceTimeBy(2000)
+        advanceUntilIdle()
         assertEquals(LoadingState.SUCCESS, viewModel.loadingStateLiveData.value)
 
     }
@@ -111,7 +109,7 @@ class HomeViewModelTest {
         coVerify {
             parkingService.getParkingLotInfo(response.parkingLots[0].parking_lot_name)
         }
-        advanceTimeBy(2000)
+        advanceUntilIdle()
         assertEquals(
             parkingLotUsersCount["Lot1"].toString(),
             viewModel.parkingLotUsersCount["Lot1"].toString()
@@ -143,7 +141,7 @@ class HomeViewModelTest {
         expectedList.add(Pair(mockApiResponse.parkingLots[0], expectedWeight))
         expectedList.add(Pair(mockApiResponse.parkingLots[1], expectedWeight1))
 
-        advanceTimeBy(2000)
+        advanceUntilIdle()
         assertEquals(expectedList,
             viewModel.parkingLotWeightsLiveData?.value
         )
@@ -166,7 +164,7 @@ class HomeViewModelTest {
         coVerify {
             parkingService.getParkingLots()
         }
-        advanceTimeBy(2000)
+        advanceUntilIdle()
         assertEquals(LoadingState.FAILURE, viewModel.loadingStateLiveData.value)
     }
 
@@ -188,7 +186,7 @@ class HomeViewModelTest {
         coVerify {
             parkingService.getParkingLotInfo(response.parkingLots[0].parking_lot_name)
         }
-        advanceTimeBy(2000)
+        advanceUntilIdle()
         // Assert that there was no change to the parkingLotUsersCount
         assertTrue(viewModel.parkingLotUsersCount.isEmpty())
     }
@@ -205,7 +203,7 @@ class HomeViewModelTest {
         coVerify(exactly = 0) {
             parkingService.getETA(any(), any())
         }
-        advanceTimeBy(2000)
+        advanceUntilIdle()
         assertNull(viewModel.nearestParkingLotLiveData?.value)
         assertTrue(viewModel.parkingLotWeightsLiveData?.value.isNullOrEmpty())
     }
