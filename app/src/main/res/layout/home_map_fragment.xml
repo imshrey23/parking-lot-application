@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
 
@@ -8,25 +10,11 @@
             type="com.example.msproject.ui.home.HomeViewModel" />
     </data>
 
-    <com.google.android.material.circularreveal.CircularRevealFrameLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+    <com.google.android.material.circularreveal.CircularRevealFrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context="ui.home.HomeMapFragment"
         android:id="@+id/main">
-
-
-        <TextView
-            android:id="@+id/progress_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textColor="@android:color/black"
-            android:layout_gravity="center"
-            android:padding="8dp"
-            android:background="@android:color/white"
-            android:elevation="4dp"
-            android:visibility="gone" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabMoreInfo"
@@ -132,17 +120,35 @@
                         android:layout_alignParentRight="true" />
                 </RelativeLayout>
             </LinearLayout>
+
+
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/progress_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="#00FFFFFF"
+        android:visibility="gone">
         <ProgressBar
             android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            android:text="Loading parking lot based on current location"/>
+            android:indeterminateTint= "#1A73E9"
+            />
 
+        <TextView
+            android:id="@+id/progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:elevation="4dp"
+            android:padding="8dp"
+            android:text="@string/progress_bar_text"
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     </com.google.android.material.circularreveal.CircularRevealFrameLayout>
 </layout>

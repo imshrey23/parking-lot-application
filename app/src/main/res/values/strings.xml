@@ -11,6 +11,10 @@
     <string name="spot">spot</string>
     <string name="parking_full">Parking lot will be full by the time you reach there</string>
     <string name="map_not_installed">Google Maps is not installed on this device</string>
+    <string name="progress_bar_text">Loading nearest parking lot...</string>
+    <string name="min_radius_alert_title">You are too far!</string>
+    <string name="min_radius_alert_text">Check again when you are 15 mins away from the parking lots for more accurate data.</string>
+    <string name="min_radius_alert_ok">OK</string>
 
 
 

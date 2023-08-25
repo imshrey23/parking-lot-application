@@ -15,7 +15,6 @@ import java.net.URL
 class ParkingServiceImpl :
     ParkingService {
 
-    //TODO: failed conditions for all function
     override suspend fun getParkingLots(): ParkingLotsResponse? {
         val response: Response =
             ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET)
@@ -24,9 +23,10 @@ class ParkingServiceImpl :
         if (response.isSuccessful) {
             val responseString = response.body?.string()
             parkingLotsResponse = Gson().fromJson(responseString, ParkingLotsResponse::class.java)
+            return parkingLotsResponse
+        } else {
+            throw Exception("Failed to fetch parking lots.")
         }
-
-        return parkingLotsResponse
     }
 
     override suspend fun getParkingLotInfo(parkingLotName: String): ParkingLotInfo? {
@@ -37,8 +37,11 @@ class ParkingServiceImpl :
         if (response.isSuccessful) {
             val responseString = response.body?.string()
             parkingLotInfoResp = Gson().fromJson(responseString, ParkingLotInfo::class.java)
+            return parkingLotInfoResp
+        } else {
+            throw Exception("Failed to fetch parking lot info for: $parkingLotName.")
         }
-        return parkingLotInfoResp
+
     }
 
     override suspend fun reserveParkingSpot(parkingLotName: String, deviceId: String, timeToReach: Long) {
@@ -55,7 +58,7 @@ class ParkingServiceImpl :
         if (response.isSuccessful) {
             Log.i("reserveParkingSpot", "Reserved Parking Spot.")
         } else {
-            Log.e("reserveParkingSpot", "Error in reserving parking spot.")
+            throw Exception ("Error in reserving parking spot.")
         }
     }
 
@@ -72,8 +75,8 @@ class ParkingServiceImpl :
 
         val response = URL(url).readText()
         val distanceMatrixResponse = Gson().fromJson(response, DistanceMatrixResponse::class.java)
+            ?: throw Exception("Failed to parse DistanceMatrixResponse.")
 
-        //TODO: add condition for distanceMatrix response is null
         if (distanceMatrixResponse.rows.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements.isNotEmpty() &&
             distanceMatrixResponse.rows[0].elements[0].duration != null

@@ -12,6 +12,10 @@
     <string name="spot">जागा</string>
     <string name="parking_full">तुम्ही तिथे पोहोचेपर्यंत पार्किंगची जागा भरलेली असेल</string>
     <string name="map_not_installed">ह्या फोनवर गुगल मॅप स्थापित केलेले नाही</string>
+    <string name="progress_bar_text">जवळच्या पार्किंगची जागा लोड करत आहे</string>
+    <string name="min_radius_alert_title">तुम्ही खूप दूर आहात! </string>
+    <string name="min_radius_alert_text">अधिक अचूक डेटासाठी तुम्ही पार्किंग लॉटपासून १५ मिनिटे दूर असताना पुन्हा तपासा.</string>
+    <string name="min_radius_alert_ok">अनुमती</string>
 
 
 
