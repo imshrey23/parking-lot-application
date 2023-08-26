@@ -186,7 +186,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
             }
         }
 
-        homeViewModel.parkingLotWeightsLiveData?.observe(requireActivity(), {
+        homeViewModel.parkinglotsWeightsLiveData?.observe(requireActivity(), {
             if (it.isNotEmpty()) {
                 updateUIElements()
             } else {
@@ -340,7 +340,7 @@ class HomeMapFragment : Fragment(R.layout.home_map_fragment), OnMapReadyCallback
 
     private fun updateUIElements() {
 
-        homeViewModel.nearestParkingLotLiveData?.observe(requireActivity(), {
+        homeViewModel.nearestParkinglotsLiveData?.observe(requireActivity(), {
             parkingLotName = it.parking_lot_name
             val spotsAvailable = it.number_of_empty_parking_slots
             val locale: Locale = Locale.getDefault()

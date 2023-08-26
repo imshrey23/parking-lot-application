@@ -28,7 +28,7 @@ class MoreInfoFragment : Fragment(R.layout.more_info_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         var homeViewModel = ViewModelProviders.of(requireActivity())[HomeViewModel::class.java]
-        homeViewModel.nearestParkingLotLiveData?.observe(viewLifecycleOwner, {
+        homeViewModel.nearestParkinglotsLiveData?.observe(viewLifecycleOwner, {
 
             val chargesTextView = binding.chargesTextView
             val localizedChargeText =
@@ -38,7 +38,8 @@ class MoreInfoFragment : Fragment(R.layout.more_info_fragment) {
             chargesTextView.text = localizedChargeText
 
             val imageView = binding.parkingImage
-            val imgUrl = it.image_url
+            var imgUrl = it.image_url
+            imgUrl = imgUrl.replace("localhost", "10.0.2.2")
             Glide.with(this)
                 .load(imgUrl)
                 .into(imageView)

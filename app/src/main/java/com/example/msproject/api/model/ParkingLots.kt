@@ -1,3 +1,3 @@
 package com.example.msproject.api.model
 
-data class ParkingLotsResponse(val parkingLots: List<ParkingLot>)
+data class ParkingLotsResponse(val parking_lots: List<parking_lots>)

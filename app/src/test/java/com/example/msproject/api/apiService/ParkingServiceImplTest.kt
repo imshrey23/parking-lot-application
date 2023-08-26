@@ -1,40 +1,36 @@
 package com.example.msproject.api.apiService
 
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import android.util.Log
+import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockkObject
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.ResponseBody
 import org.json.JSONObject
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.powermock.core.classloader.annotations.PrepareForTest
+import java.net.URL
 
 @RunWith(JUnit4::class)
+@PrepareForTest(URL::class)
 class ParkingServiceImplTest {
 
-    companion object {
         init {
             mockkObject(ServiceBuilder)
         }
-    }
-
 
     @MockK
     lateinit var response: Response
 
     @MockK
     lateinit var responseBody: ResponseBody
-
-    @MockK
-    lateinit var jsonObject: JSONObject
 
     @InjectMockKs
     lateinit var parkingServiceImpl: ParkingServiceImpl
@@ -48,7 +44,7 @@ class ParkingServiceImplTest {
     @Test
     fun `test getParkingLots success`() = runBlocking {
         val json = """{
-    "parkingLots": [
+    "parking_lots": [
         {
             "latitude": "44.568078130296776", 
             "longitude": "44.568078130296776",
@@ -72,9 +68,28 @@ class ParkingServiceImplTest {
         val result = parkingServiceImpl.getParkingLots()
 
         assertNotNull(result)
-        assertEquals(1, result?.parkingLots?.size)
-        assertEquals("Johnson Hall", result?.parkingLots?.get(0)?.parking_lot_name)
+        assertEquals(1, result?.parking_lots?.size)
+        assertEquals("Johnson Hall", result?.parking_lots?.get(0)?.parking_lot_name)
 
+
+        verify { ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET) }
+    }
+
+    @Test
+    fun `test getParkingLots failure`() = runBlocking {
+
+        every { response.isSuccessful } returns false
+        every { ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET) } returns response
+
+        var exceptionThrown: Exception? = null
+        try {
+            parkingServiceImpl.getParkingLots()
+        } catch (e: Exception) {
+            exceptionThrown = e
+        }
+
+        assertNotNull(exceptionThrown)
+        assertEquals("Failed to fetch parking lots.", exceptionThrown?.message)
 
         verify { ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET) }
     }
@@ -100,25 +115,6 @@ class ParkingServiceImplTest {
         verify { ServiceBuilder.getBuilder(ApiConstant.PARKING_LOT_API + "Johnson Hall", RequestType.GET) }
     }
 
-    @Test
-    fun `test getParkingLots failure`() = runBlocking {
-
-        every { response.isSuccessful } returns false
-        every { ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET) } returns response
-
-        var exceptionThrown: Exception? = null
-        try {
-            parkingServiceImpl.getParkingLots()
-        } catch (e: Exception) {
-            exceptionThrown = e
-        }
-
-        assertNotNull(exceptionThrown)
-        assertEquals("Failed to fetch parking lots.", exceptionThrown?.message)
-
-        verify { ServiceBuilder.getBuilder(ApiConstant.PARKING_LOTS_API, RequestType.GET) }
-    }
-
 
     @Test
     fun `test getParkingLotInfo failure`() = runBlocking {
@@ -135,5 +131,56 @@ class ParkingServiceImplTest {
         assertNotNull(exceptionThrown)
 
         verify { ServiceBuilder.getBuilder(ApiConstant.PARKING_LOT_API + "Johnson Hall", RequestType.GET) }
+    }
+
+    @Test
+    fun `test reserveParkingSpot success`() = runBlocking {
+
+        val jsonData = JSONObject().apply {
+            put("parkingLotName", "parkingLotName")
+            put("deviceId", "12343")
+            put("timeToReachDestination", 1234455)
+        }
+
+        val requestBody = jsonData.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+        every { response.isSuccessful } returns true
+
+        every { ServiceBuilder.getBuilder(ApiConstant.UPDATE_PARKING_LOT, RequestType.POST, requestBody) } returns response
+
+        var exceptionThrown: Exception? = null
+        try {
+            parkingServiceImpl.reserveParkingSpot("Johnson Hall", "12343", 1234343)
+        } catch (e: Exception) {
+            exceptionThrown = e
+        }
+
+        assert(response.isSuccessful)
+    }
+
+    @Test
+    fun `test reserveParkingSpot failure`() = runBlocking {
+
+        val jsonData = JSONObject()
+        jsonData.put("parkingLotName", "parkingLotName")
+        jsonData.put("deviceId", "12343")
+        jsonData.put("timeToReachDestination", 1234455)
+
+        val requestBody = jsonData.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        every { response.isSuccessful } returns false
+        every { ServiceBuilder.getBuilder(ApiConstant.UPDATE_PARKING_LOT,  RequestType.POST,requestBody)} returns response
+
+
+        var exceptionThrown: Exception? = null
+        try {
+            parkingServiceImpl.reserveParkingSpot("Johnson Hall","12343",1234343)
+        } catch (e: Exception) {
+            exceptionThrown = e
+        }
+
+        assertNotNull(exceptionThrown)
+        assert( !response.isSuccessful )
     }
 }
