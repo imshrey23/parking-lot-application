@@ -1,6 +1,7 @@
 package com.example.msproject.api.model
 
-data class ParkingLot(
+data class parking_lots(
+    val id : String,
     val latitude: Double,
     val longitude: Double,
     val image_url: String,

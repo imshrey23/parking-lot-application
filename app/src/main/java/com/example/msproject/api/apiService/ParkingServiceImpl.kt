@@ -73,6 +73,7 @@ class ParkingServiceImpl :
                 "departure_time=now&" +
                 "key=${BuildConfig.PLACES_API_KEY}"
 
+
         val response = URL(url).readText()
         val distanceMatrixResponse = Gson().fromJson(response, DistanceMatrixResponse::class.java)
             ?: throw Exception("Failed to parse DistanceMatrixResponse.")
